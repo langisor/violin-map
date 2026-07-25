@@ -1,18 +1,19 @@
 import { useCallback, useState } from "react";
 import {
-  VIOLIN_STRINGS,
   POSITIONS,
   noteAtPosition,
   noteFrequency,
-} from "@/lib/violin_theory";
-import { violinAudioEngine, type PlayMode } from "@/lib/violin_audio";
+  type ViolinString,
+} from "@/lib/violin-theory";
+import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { cn } from "@/lib/utils";
 
 interface ViolinFingerboardProps {
   mode: PlayMode;
+  strings: ViolinString[];
 }
 
-export function ViolinFingerboard({ mode }: ViolinFingerboardProps) {
+export function ViolinFingerboard({ mode, strings }: ViolinFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
 
   const handlePress = useCallback(
@@ -34,7 +35,8 @@ export function ViolinFingerboard({ mode }: ViolinFingerboardProps) {
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-violin-border bg-gradient-to-b from-violin-panel-2 to-violin-bg p-5 shadow-inner">
       <div className="min-w-[760px]">
-        {VIOLIN_STRINGS.slice()
+        {strings
+          .slice()
           .reverse()
           .map((str, rowIndex) => (
             <div key={str.id} className="mb-2 flex items-center gap-3">

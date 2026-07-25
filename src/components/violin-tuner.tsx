@@ -1,12 +1,13 @@
-import { VIOLIN_STRINGS, noteFrequency } from "@/lib/violin_theory";
-import { violinAudioEngine, type PlayMode } from "@/lib/violin_audio";
+import { noteFrequency, type ViolinString } from "@/lib/violin-theory";
+import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { Button } from "@/components/ui/button";
 
 interface ViolinTunerProps {
   mode: PlayMode;
+  strings: ViolinString[];
 }
 
-export function ViolinTuner({ mode }: ViolinTunerProps) {
+export function ViolinTuner({ mode, strings }: ViolinTunerProps) {
   const playOpenString = async (stringId: string, openNote: string) => {
     await violinAudioEngine.noteOn(stringId, noteFrequency(openNote), mode);
     setTimeout(
@@ -17,7 +18,7 @@ export function ViolinTuner({ mode }: ViolinTunerProps) {
 
   return (
     <div className="flex gap-2">
-      {VIOLIN_STRINGS.map((str) => (
+      {strings.map((str) => (
         <Button
           key={str.id}
           variant="outline"
@@ -25,7 +26,7 @@ export function ViolinTuner({ mode }: ViolinTunerProps) {
           style={{ borderColor: str.varnish }}
           onClick={() => playOpenString(str.id, str.openNote)}
         >
-          {str.id}
+          {str.label}
           <span className="ml-1 text-xs text-violin-muted">{str.openNote}</span>
         </Button>
       ))}
