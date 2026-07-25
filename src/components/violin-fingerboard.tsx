@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
 import {
-  POSITIONS,
-  noteAtPosition,
-  noteFrequency,
+  stepsFor,
+  labelAtStep,
+  frequencyAtStep,
   type ViolinString,
+  type Resolution,
 } from "@/lib/violin-theory";
 import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { cn } from "@/lib/utils";
@@ -11,15 +12,17 @@ import { cn } from "@/lib/utils";
 interface ViolinFingerboardProps {
   mode: PlayMode;
   strings: ViolinString[];
+  resolution: Resolution;
 }
 
-export function ViolinFingerboard({ mode, strings }: ViolinFingerboardProps) {
+export function ViolinFingerboard({ mode, strings, resolution }: ViolinFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
+  const steps = stepsFor(resolution);
 
   const handlePress = useCallback(
-    (stringId: string, position: number, noteName: string) => {
-      setActiveCell(`${stringId}-${position}`);
-      violinAudioEngine.noteOn(stringId, noteFrequency(noteName), mode);
+    (stringId: string, step: number, frequency: number) => {
+      setActiveCell(`${stringId}-${step}`);
+      violinAudioEngine.noteOn(stringId, frequency, mode);
     },
     [mode]
   );
@@ -34,7 +37,7 @@ export function ViolinFingerboard({ mode, strings }: ViolinFingerboardProps) {
 
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-violin-border bg-gradient-to-b from-violin-panel-2 to-violin-bg p-5 shadow-inner">
-      <div className="min-w-[760px]">
+      <div className={resolution === "quarter-tone" ? "min-w-[1360px]" : "min-w-[760px]"}>
         {strings
           .slice()
           .reverse()
@@ -44,7 +47,7 @@ export function ViolinFingerboard({ mode, strings }: ViolinFingerboardProps) {
                 className="flex w-10 shrink-0 flex-col items-center text-sm font-semibold"
                 style={{ color: str.varnish }}
               >
-                <span>{str.id}</span>
+                <span>{str.label}</span>
                 <span
                   className="mt-1 w-6 rounded-full"
                   style={{
@@ -55,21 +58,23 @@ export function ViolinFingerboard({ mode, strings }: ViolinFingerboardProps) {
                 />
               </div>
               <div className="flex flex-1 gap-1">
-                {Array.from({ length: POSITIONS + 1 }, (_, position) => {
-                  const noteName = noteAtPosition(str.openNote, position);
-                  const cellKey = `${str.id}-${position}`;
+                {steps.map((step) => {
+                  const noteName = labelAtStep(str.openNote, step);
+                  const frequency = frequencyAtStep(str.openNote, step);
+                  const cellKey = `${str.id}-${step}`;
                   const isActive = activeCell === cellKey;
-                  const isOpen = position === 0;
+                  const isOpen = step === 0;
+                  const isQuarterTone = !Number.isInteger(step);
                   return (
                     <button
                       key={cellKey}
-                      aria-label={`${str.id} string, position ${position}, note ${noteName}`}
-                      onMouseDown={() => handlePress(str.id, position, noteName)}
+                      aria-label={`${str.label} string, position ${step}, note ${noteName}`}
+                      onMouseDown={() => handlePress(str.id, step, frequency)}
                       onMouseUp={() => handleRelease(str.id)}
                       onMouseLeave={() => isActive && handleRelease(str.id)}
                       onTouchStart={(e) => {
                         e.preventDefault();
-                        handlePress(str.id, position, noteName);
+                        handlePress(str.id, step, frequency);
                       }}
                       onTouchEnd={() => handleRelease(str.id)}
                       className={cn(
@@ -77,12 +82,13 @@ export function ViolinFingerboard({ mode, strings }: ViolinFingerboardProps) {
                         isOpen
                           ? "border-violin-border bg-violin-cell-open"
                           : "border-violin-border bg-violin-cell",
+                        isQuarterTone && "border-dashed bg-violin-bg/60",
                         isActive && "border-violin-e bg-violin-cell-active"
                       )}
                       style={{ outlineColor: str.varnish }}
                     >
                       <span className="font-medium text-violin-text">{noteName}</span>
-                      <span className="text-[10px] text-violin-muted">{position}</span>
+                      <span className="text-[10px] text-violin-muted">{step}</span>
                     </button>
                   );
                 })}
@@ -91,8 +97,10 @@ export function ViolinFingerboard({ mode, strings }: ViolinFingerboardProps) {
           ))}
       </div>
       <p className="mt-3 text-center text-xs text-violin-muted">
-        Hold a cell to sustain in bow mode, or tap to pluck in pizzicato mode. The small number is
-        the semitone position above the open string.
+        Hold a cell to sustain in bow mode, or tap to pluck in pizzicato mode.
+        {resolution === "quarter-tone"
+          ? " Dashed cells are quarter tones — the note name below with a trailing \"+\" means raised a quarter tone."
+          : " The small number is the semitone position above the open string."}
       </p>
     </div>
   );

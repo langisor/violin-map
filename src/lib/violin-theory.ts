@@ -46,8 +46,22 @@ export function buildStrings(tuning: TuningPreset): ViolinString[] {
   }));
 }
 
-// Chromatic steps shown on the fingerboard (0 = open string).
-export const POSITIONS = 12;
+// --- Fingerboard resolution ---------------------------------------------
+//
+// "semitone"    - standard 12-EDO fingerboard, one cell per half step.
+// "quarter-tone" - 24-EDO fingerboard (common in Arabic/Turkish/Persian maqam
+//                  practice), one cell per quarter step. Quarter-tone cells
+//                  that fall between two tempered semitones are labeled as
+//                  the lower note raised a quarter tone, e.g. "F4+".
+
+export type Resolution = "semitone" | "quarter-tone";
+
+export const SEMITONE_POSITIONS = 12; // steps shown per octave, semitone mode
+export const QUARTER_TONE_POSITIONS = 24; // steps shown per octave, quarter-tone mode
+
+export function positionsFor(resolution: Resolution): number {
+  return resolution === "quarter-tone" ? QUARTER_TONE_POSITIONS : SEMITONE_POSITIONS;
+}
 
 export function noteAtPosition(openNote: string, semitones: number): string {
   const interval = Interval.fromSemitones(semitones);
@@ -58,20 +72,66 @@ export function noteFrequency(noteName: string): number {
   return Note.freq(noteName) ?? 440;
 }
 
+/** Frequency at a given step, where step is in semitones (quarter-tone mode: half-steps of 0.5). */
+export function frequencyAtStep(openNote: string, step: number): number {
+  const base = Note.freq(openNote) ?? 440;
+  return base * 2 ** (step / 12);
+}
+
+/**
+ * Label at a given step. Whole steps resolve to a normal tonal note name.
+ * Half-integer steps (quarter tones) are labeled as the note below, raised
+ * a quarter tone, using a trailing "+" (half-sharp).
+ */
+export function labelAtStep(openNote: string, step: number): string {
+  if (Number.isInteger(step)) return noteAtPosition(openNote, step);
+  const lowerNote = noteAtPosition(openNote, Math.floor(step));
+  return `${lowerNote}+`;
+}
+
+/** Generates the sequence of fingerboard steps for a resolution: whole steps for
+ * "semitone", half-steps (0, 0.5, 1, 1.5, ...) for "quarter-tone". */
+export function stepsFor(resolution: Resolution): number[] {
+  const count = positionsFor(resolution);
+  const increment = resolution === "quarter-tone" ? 0.5 : 1;
+  return Array.from({ length: count + 1 }, (_, i) => i * increment);
+}
+
 // --- Pitch detection helpers -------------------------------------------
 
 export interface PitchResult {
   noteName: string;
-  midi: number;
+  midi: number; // nearest semitone MIDI number (rounded down for quarter tones)
   frequency: number;
-  cents: number; // deviation from the nearest tempered note, -50..50
+  cents: number; // deviation from the nearest resolved pitch
 }
 
-/** Converts a detected frequency (Hz) into note name / MIDI / cents-off. */
-export function analyzeFrequency(frequency: number): PitchResult {
+/**
+ * Converts a detected frequency (Hz) into note name / MIDI / cents-off.
+ * In "semitone" mode this snaps to the nearest of the 12 tempered pitch
+ * classes (cents range -50..50). In "quarter-tone" mode it snaps to the
+ * nearest of 24 quarter-tone steps (cents range -25..25), labeling
+ * in-between pitches with a trailing "+" (half-sharp).
+ */
+export function analyzeFrequency(
+  frequency: number,
+  resolution: Resolution = "semitone"
+): PitchResult {
   const midiFloat = 69 + 12 * Math.log2(frequency / 440);
-  const midi = Math.round(midiFloat);
-  const noteName = Note.fromMidi(midi);
-  const cents = Math.round((midiFloat - midi) * 100);
-  return { noteName, midi, frequency, cents };
+
+  if (resolution === "semitone") {
+    const midi = Math.round(midiFloat);
+    const noteName = Note.fromMidi(midi);
+    const cents = Math.round((midiFloat - midi) * 100);
+    return { noteName, midi, frequency, cents };
+  }
+
+  // Quarter-tone (24-EDO): snap to the nearest 50-cent step.
+  const quarterStepFloat = midiFloat * 2;
+  const quarterStep = Math.round(quarterStepFloat);
+  const cents = Math.round((quarterStepFloat - quarterStep) * 50);
+  const baseMidi = Math.floor(quarterStep / 2);
+  const isHalfSharp = quarterStep % 2 !== 0;
+  const noteName = isHalfSharp ? `${Note.fromMidi(baseMidi)}+` : Note.fromMidi(quarterStep / 2);
+  return { noteName, midi: baseMidi, frequency, cents };
 }

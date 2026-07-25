@@ -4,7 +4,7 @@ A browser-based violin built with React, TypeScript, Tone.js, and tonal — an i
 
 ## Features
 
-- **Interactive fingerboard** — four strings, 13 chromatic positions each (open string through a full octave). Hold a cell to sustain a bowed note, or tap to pluck pizzicato.
+- **Interactive fingerboard** — four strings, with a **Semitone** mode (13 tempered positions, open string through an octave) and a **Quarter-tone** mode (25 positions at 24-EDO / 50-cent steps, common in Arabic/Turkish/Persian maqam practice). Hold a cell to sustain a bowed note, or tap to pluck pizzicato. Quarter-tone cells are shown with a dashed border and labeled as the note below raised a quarter tone (e.g. `F4+`).
 - **Two playback modes**
   - **Bow** — a sustained `Tone.Synth` voice with a slow attack, held for as long as you press.
   - **Pizzicato** — a `Tone.PluckSynth` (Karplus-Strong string synthesis) triggered on tap.
@@ -14,10 +14,10 @@ A browser-based violin built with React, TypeScript, Tone.js, and tonal — an i
   - Adding another tuning is a one-line addition to the `TUNINGS` array (see [Adding a tuning](#adding-a-tuning)).
 - **Open-string tuner** — one-tap playback of each open string in the current tuning.
 - **Pitch detection mode** — uses the microphone and an autocorrelation algorithm (no external pitch library) to detect the fundamental frequency of whatever note is played, then reports:
-  - Note name (e.g. `A4`)
+  - Note name (e.g. `A4`, or `F4+` for a quarter tone in Quarter-tone resolution)
   - MIDI number
   - Frequency in Hz
-  - Cents deviation from the nearest tempered pitch, plus a simple in-tune gauge
+  - Cents deviation from the nearest resolved pitch (±50¢ window in Semitone mode, ±25¢ in Quarter-tone mode), plus a simple in-tune gauge
 
 ## Tech stack
 
@@ -92,6 +92,17 @@ export const TUNINGS: TuningPreset[] = [
 ```
 
 It will automatically appear as a button in the tuning selector.
+
+### Quarter tones
+
+The fingerboard's **Resolution** toggle switches between:
+
+- **Semitone** — 12-EDO, one cell per half step (`stepsFor` yields whole-number steps `0, 1, 2, …`).
+- **Quarter-tone** — 24-EDO, one cell per 50-cent step (`stepsFor` yields half-integer steps `0, 0.5, 1, 1.5, …`).
+
+`frequencyAtStep(openNote, step)` computes pitch directly from cents (`freq × 2^(step/12)`), so quarter-tone frequencies fall exactly halfway between their semitone neighbors. `labelAtStep` names whole steps with `tonal`'s standard note names, and half-integer steps as the note below with a trailing `+` (half-sharp) — e.g. the quarter tone between F4 and F#4 is labeled `F4+`.
+
+The pitch detector has the same toggle: in Quarter-tone mode, `analyzeFrequency` snaps the detected pitch to the nearest 24-EDO step instead of the nearest semitone, and narrows the in-tune window and cents display to match (±25¢ instead of ±50¢).
 
 ### Pitch detection
 
