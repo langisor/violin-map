@@ -8,6 +8,7 @@ A browser-based violin built with React, TypeScript, Tone.js, and tonal — an i
 - **Two playback modes**
   - **Bow** — a sustained `Tone.Synth` voice with a slow attack, held for as long as you press.
   - **Pizzicato** — a `Tone.PluckSynth` (Karplus-Strong string synthesis) triggered on tap.
+- **Maqam scale-degree highlighting** — pick a maqam (Bayati, Rast, Hijaz, Nahawand, Kurd, Sikah) and every fingerboard cell whose pitch belongs to that maqam is highlighted with a golden ring and dot, on **both** the Violin and Oud fingerboards. Definitions live in `src/lib/maqam-theory.ts` (shared, instrument-agnostic). Picking a maqam with quarter-tone degrees (e.g. Bayati's half-flat 2nd) auto-switches the fingerboard to Quarter-tone resolution so those notes actually render.
 - **Swappable tunings**
   - **Standard** — G3 · D4 · A4 · E5
   - **Eastern (G-D-G-D)** — G3 · D4 · G4 · D5
@@ -61,6 +62,7 @@ src/
 └── lib/
     ├── violin_theory.ts           # Tunings, note/frequency helpers, frequency → note analysis
     ├── violin_audio.ts            # Tone.js synths (bow + pluck) per string
+    ├── maqam_theory.ts            # Maqamat presets + isNoteInMaqam(), shared by Violin and Oud
     └── pitch_detection.ts         # Autocorrelation fundamental-frequency estimator
 ```
 
