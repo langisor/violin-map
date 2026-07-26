@@ -5,6 +5,11 @@ import { PitchTuner } from "@/components/pitch-tuner";
 import { OudPage } from "@/components/oud-page";
 import { TUNINGS, buildStrings, type Resolution } from "@/lib/violin-theory";
 import type { PlayMode } from "@/lib/violin-audio";
+import {
+  MAQAMAT,
+  maqamNeedsQuarterTones,
+  type MaqamPreset,
+} from "@/lib/maqam-theory";
 import { Button } from "@/components/ui/button";
 
 type Instrument = "violin" | "oud";
@@ -18,12 +23,28 @@ export default function App() {
   const [mode, setMode] = useState<PlayMode>("bow");
   const [tuningId, setTuningId] = useState(TUNINGS[0].id);
   const [resolution, setResolution] = useState<Resolution>("semitone");
+  const [selectedMaqamId, setSelectedMaqamId] = useState<string>("");
 
   const tuning = useMemo(
     () => TUNINGS.find((t) => t.id === tuningId) ?? TUNINGS[0],
     [tuningId],
   );
   const strings = useMemo(() => buildStrings(tuning), [tuning]);
+
+  const activeMaqam: MaqamPreset | null = useMemo(
+    () => MAQAMAT.find((m) => m.id === selectedMaqamId) ?? null,
+    [selectedMaqamId],
+  );
+
+  const handleSelectMaqam = (maqam: MaqamPreset) => {
+    const nextId = selectedMaqamId === maqam.id ? "" : maqam.id;
+    setSelectedMaqamId(nextId);
+    // Most maqamat need quarter tones (e.g. Bayati's half-flat 2nd degree) —
+    // switch resolution up automatically so the highlighted notes actually exist.
+    if (nextId && maqamNeedsQuarterTones(maqam)) {
+      setResolution("quarter-tone");
+    }
+  };
 
   return (
     <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 p-6">
@@ -142,10 +163,74 @@ export default function App() {
             </div>
           </div>
 
+          {/* Maqam Scale Degree Highlighting */}
+          <div className="rounded-xl border border-amber-900/30 bg-amber-950/10 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-amber-200">
+                  Maqam Scale Degree Highlighting
+                </h3>
+                <p className="text-xs text-violin-muted">
+                  Select a maqam to highlight its scale degrees across the
+                  fingerboard. Selecting one with quarter-tone degrees
+                  switches Resolution to Quarter-tone automatically.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {MAQAMAT.map((m) => (
+                  <Button
+                    key={m.id}
+                    size="sm"
+                    variant={m.id === selectedMaqamId ? "default" : "outline"}
+                    onClick={() => handleSelectMaqam(m)}
+                    className={
+                      m.id === selectedMaqamId
+                        ? "bg-amber-600 text-amber-950 hover:bg-amber-500 font-semibold"
+                        : "border-amber-900/50 text-amber-200/80 hover:bg-amber-900/40"
+                    }
+                    title={m.description}
+                  >
+                    {m.nameEn} ({m.nameAr})
+                  </Button>
+                ))}
+                {selectedMaqamId && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSelectedMaqamId("")}
+                    className="text-xs text-violin-muted hover:text-violin-text"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {activeMaqam && (
+              <div className="mt-2 rounded-lg border border-amber-800/40 bg-amber-900/10 p-3 text-xs text-amber-100/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="font-bold text-amber-300">
+                    {activeMaqam.nameEn} ({activeMaqam.nameAr}):
+                  </span>{" "}
+                  {activeMaqam.description}
+                </div>
+                <a
+                  href={activeMaqam.maqamWorldUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 text-amber-400 hover:underline font-semibold flex items-center gap-1"
+                >
+                  Learn more on MaqamWorld
+                </a>
+              </div>
+            )}
+          </div>
+
           <ViolinFingerboard
             mode={mode}
             strings={strings}
             resolution={resolution}
+            activeMaqam={activeMaqam}
           />
 
           <div>

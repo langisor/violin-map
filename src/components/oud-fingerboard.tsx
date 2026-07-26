@@ -5,11 +5,8 @@ import {
   frequencyAtStep,
   type Resolution,
 } from "@/lib/violin-theory";
-import {
-  isNoteInMaqam,
-  type OudString,
-  type MaqamPreset,
-} from "@/lib/oud-theory";
+import type { OudString } from "@/lib/oud-theory";
+import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
 import { oudAudioEngine, type OudPlayMode } from "@/lib/oud-audio";
 import { cn } from "@/lib/utils";
 

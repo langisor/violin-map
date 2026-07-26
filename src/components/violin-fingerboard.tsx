@@ -7,15 +7,22 @@ import {
   type Resolution,
 } from "@/lib/violin-theory";
 import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
+import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
 import { cn } from "@/lib/utils";
 
 interface ViolinFingerboardProps {
   mode: PlayMode;
   strings: ViolinString[];
   resolution: Resolution;
+  activeMaqam?: MaqamPreset | null;
 }
 
-export function ViolinFingerboard({ mode, strings, resolution }: ViolinFingerboardProps) {
+export function ViolinFingerboard({
+  mode,
+  strings,
+  resolution,
+  activeMaqam = null,
+}: ViolinFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
   const steps = stepsFor(resolution);
 
@@ -65,6 +72,9 @@ export function ViolinFingerboard({ mode, strings, resolution }: ViolinFingerboa
                   const isActive = activeCell === cellKey;
                   const isOpen = step === 0;
                   const isQuarterTone = !Number.isInteger(step);
+                  const inMaqam = activeMaqam
+                    ? isNoteInMaqam(str.openNote, step, activeMaqam)
+                    : false;
                   return (
                     <button
                       key={cellKey}
@@ -78,17 +88,29 @@ export function ViolinFingerboard({ mode, strings, resolution }: ViolinFingerboa
                       }}
                       onTouchEnd={() => handleRelease(str.id)}
                       className={cn(
-                        "flex h-14 flex-1 flex-col items-center justify-center rounded-md border text-xs transition-colors select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                        "relative flex h-14 flex-1 flex-col items-center justify-center rounded-md border text-xs transition-colors select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
                         isOpen
                           ? "border-violin-border bg-violin-cell-open"
                           : "border-violin-border bg-violin-cell",
                         isQuarterTone && "border-dashed bg-violin-bg/60",
+                        inMaqam &&
+                          "border-amber-500/80 bg-amber-950/40 font-semibold ring-1 ring-amber-500/50",
                         isActive && "border-violin-e bg-violin-cell-active"
                       )}
                       style={{ outlineColor: str.varnish }}
                     >
-                      <span className="font-medium text-violin-text">{noteName}</span>
+                      <span
+                        className={cn(
+                          "font-medium",
+                          inMaqam ? "text-amber-300" : "text-violin-text"
+                        )}
+                      >
+                        {noteName}
+                      </span>
                       <span className="text-[10px] text-violin-muted">{step}</span>
+                      {inMaqam && (
+                        <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-300" />
+                      )}
                     </button>
                   );
                 })}
@@ -101,6 +123,12 @@ export function ViolinFingerboard({ mode, strings, resolution }: ViolinFingerboa
         {resolution === "quarter-tone"
           ? " Dashed cells are quarter tones — the note name below with a trailing \"+\" means raised a quarter tone."
           : " The small number is the semitone position above the open string."}
+        {activeMaqam && (
+          <span className="ml-1 text-amber-400 font-medium">
+            Cells with golden dots belong to {activeMaqam.nameEn} (
+            {activeMaqam.nameAr}).
+          </span>
+        )}
       </p>
     </div>
   );

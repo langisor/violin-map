@@ -1,10 +1,6 @@
 import { useMemo, useState } from "react";
-import {
-  OUD_TUNINGS,
-  MAQAMAT,
-  buildOudStrings,
-  type MaqamPreset,
-} from "@/lib/oud-theory";
+import { OUD_TUNINGS, buildOudStrings } from "@/lib/oud-theory";
+import { MAQAMAT, type MaqamPreset } from "@/lib/maqam-theory";
 import type { OudPlayMode } from "@/lib/oud-audio";
 import type { Resolution } from "@/lib/violin-theory";
 import { OudFingerboard } from "@/components/oud-fingerboard";
