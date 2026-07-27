@@ -43,7 +43,10 @@ export function OudFingerboard({
   );
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-amber-900/40 bg-gradient-to-b from-[#251910] to-[#140c07] p-5 shadow-2xl">
+    <div className="w-full overflow-x-auto rounded-2xl border border-amber-900/40 bg-gradient-to-b from-[#251910] to-[#140c07] p-3 shadow-2xl sm:p-5">
+      <p className="mb-2 text-center text-[10px] text-violin-muted sm:hidden">
+        ← Scroll to see the full fingerboard →
+      </p>
       <div
         className={
           resolution === "quarter-tone" ? "min-w-[1360px]" : "min-w-[760px]"
@@ -55,10 +58,10 @@ export function OudFingerboard({
           .map((str, rowIndex) => {
             const isSingleBass = rowIndex === strings.length - 1;
             return (
-              <div key={str.id} className="mb-3 flex items-center gap-3">
+              <div key={str.id} className="mb-3 flex items-center gap-2 sm:gap-3">
                 {/* String Course Header */}
                 <div
-                  className="flex w-28 shrink-0 flex-col items-start text-xs font-medium"
+                  className="flex w-20 shrink-0 flex-col items-start text-xs font-medium sm:w-28"
                   style={{ color: str.varnish }}
                 >
                   <div className="flex items-center gap-1.5 font-semibold text-violin-text">

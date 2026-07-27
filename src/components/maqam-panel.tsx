@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Square, ExternalLink } from "lucide-react";
+import { Play, Square, ExternalLink, Info } from "lucide-react";
 import {
   MAQAMAT,
   getJins,
@@ -12,6 +12,12 @@ import {
   type SequencableAudioEngine,
 } from "@/lib/maqam-playback";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MaqamPanelProps<Mode extends string> {
   selectedMaqamId: string;
@@ -22,6 +28,23 @@ interface MaqamPanelProps<Mode extends string> {
   /** Octave the tonic is played at when sequencing, e.g. 3 for Oud, 4 for Violin. */
   playbackOctave?: number;
   helperText?: string;
+}
+
+function InfoHint({ text }: { text: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label="More info"
+          className="inline-flex shrink-0 items-center justify-center rounded-full text-amber-500/70 hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60"
+        >
+          <Info className="h-3.5 w-3.5" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{text}</TooltipContent>
+    </Tooltip>
+  );
 }
 
 function JinsRow({
@@ -44,7 +67,7 @@ function JinsRow({
 
   return (
     <div className="rounded-lg border border-amber-900/40 bg-amber-950/30 p-3">
-      <span className="font-semibold text-amber-200">
+      <span className="font-semibold text-amber-200 text-xs sm:text-sm">
         {label}: {jins.nameEn} ({jins.nameAr})
       </span>
       <p className="mt-1 text-[11px] text-violin-muted">
@@ -104,33 +127,42 @@ export function MaqamPanel<Mode extends string>({
   };
 
   return (
-    <div className="rounded-xl border border-amber-900/30 bg-amber-950/10 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <div>
+    <Card className="border-amber-900/30 bg-amber-950/10">
+      <CardHeader className="pb-0">
+        <div className="flex items-center gap-1.5">
           <h3 className="text-sm font-semibold text-amber-200">
             Maqam Scale Degree Highlighting
           </h3>
-          <p className="text-xs text-violin-muted">
-            {helperText ??
-              "Select a maqam to highlight its scale degrees across the fingerboard."}
-          </p>
+          <InfoHint text="A maqam is a melodic mode used in Arabic, Turkish, and Persian music — a scale plus a set of characteristic phrases, built from two smaller building blocks called ajnas (sing. jins)." />
         </div>
-        <div className="flex flex-wrap gap-1.5">
+        <p className="text-xs text-violin-muted">
+          {helperText ??
+            "Select a maqam to highlight its scale degrees across the fingerboard."}
+        </p>
+      </CardHeader>
+
+      <CardContent className="pt-4 space-y-4">
+        {/* Maqam selector: horizontally scrollable chip row on mobile, wraps on larger screens */}
+        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
           {MAQAMAT.map((m) => (
-            <Button
-              key={m.id}
-              size="sm"
-              variant={m.id === selectedMaqamId ? "default" : "outline"}
-              onClick={() => onSelect(m)}
-              className={
-                m.id === selectedMaqamId
-                  ? "bg-amber-600 text-amber-950 hover:bg-amber-500 font-semibold"
-                  : "border-amber-900/50 text-amber-200/80 hover:bg-amber-900/40"
-              }
-              title={m.description}
-            >
-              {m.nameEn} ({m.nameAr})
-            </Button>
+            <Tooltip key={m.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant={m.id === selectedMaqamId ? "default" : "outline"}
+                  onClick={() => onSelect(m)}
+                  className={
+                    "shrink-0 " +
+                    (m.id === selectedMaqamId
+                      ? "bg-amber-600 text-amber-950 hover:bg-amber-500 font-semibold"
+                      : "border-amber-900/50 text-amber-200/80 hover:bg-amber-900/40")
+                  }
+                >
+                  {m.nameEn} ({m.nameAr})
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{m.description}</TooltipContent>
+            </Tooltip>
           ))}
           {selectedMaqamId && (
             <Button
@@ -140,80 +172,80 @@ export function MaqamPanel<Mode extends string>({
                 handleStop();
                 onClear();
               }}
-              className="text-xs text-violin-muted hover:text-violin-text"
+              className="shrink-0 text-xs text-violin-muted hover:text-violin-text"
             >
               Clear
             </Button>
           )}
         </div>
-      </div>
 
-      {activeMaqam && (
-        <div className="space-y-3">
-          <div className="rounded-lg border border-amber-800/40 bg-amber-900/10 p-3 text-xs text-amber-100/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <span className="font-bold text-amber-300">
-                {activeMaqam.nameEn} ({activeMaqam.nameAr}):
-              </span>{" "}
-              {activeMaqam.description}
+        {activeMaqam && (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-amber-800/40 bg-amber-900/10 p-3 text-xs text-amber-100/90 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="font-bold text-amber-300">
+                  {activeMaqam.nameEn} ({activeMaqam.nameAr}):
+                </span>{" "}
+                {activeMaqam.description}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  size="sm"
+                  variant={isPlaying ? "default" : "outline"}
+                  onClick={isPlaying ? handleStop : handlePlay}
+                  className={
+                    isPlaying
+                      ? "bg-amber-600 text-amber-950 hover:bg-amber-500 font-semibold"
+                      : "border-amber-600/60 text-amber-300 hover:bg-amber-900/40"
+                  }
+                >
+                  {isPlaying ? (
+                    <>
+                      <Square className="h-3.5 w-3.5" /> Stop
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-3.5 w-3.5" /> Play Maqam
+                    </>
+                  )}
+                </Button>
+                <a
+                  href={activeMaqam.maqamWorldUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-400 hover:underline font-semibold flex items-center gap-1"
+                >
+                  MaqamWorld <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button
-                size="sm"
-                variant={isPlaying ? "default" : "outline"}
-                onClick={isPlaying ? handleStop : handlePlay}
-                className={
-                  isPlaying
-                    ? "bg-amber-600 text-amber-950 hover:bg-amber-500 font-semibold"
-                    : "border-amber-600/60 text-amber-300 hover:bg-amber-900/40"
-                }
-              >
-                {isPlaying ? (
-                  <>
-                    <Square className="h-3.5 w-3.5" /> Stop
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-3.5 w-3.5" /> Play Maqam
-                  </>
-                )}
-              </Button>
-              <a
-                href={activeMaqam.maqamWorldUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-amber-400 hover:underline font-semibold flex items-center gap-1"
-              >
-                MaqamWorld <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <JinsRow
-              label="Lower Jins"
-              placement={activeMaqam.lowerJins}
-              tonic={activeMaqam.tonic}
-              octave={playbackOctave}
-            />
-            {activeMaqam.upperJins && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <JinsRow
-                label="Upper Jins"
-                placement={activeMaqam.upperJins}
+                label="Lower Jins"
+                placement={activeMaqam.lowerJins}
                 tonic={activeMaqam.tonic}
                 octave={playbackOctave}
               />
+              {activeMaqam.upperJins && (
+                <JinsRow
+                  label="Upper Jins"
+                  placement={activeMaqam.upperJins}
+                  tonic={activeMaqam.tonic}
+                  octave={playbackOctave}
+                />
+              )}
+            </div>
+
+            {isPlaying && playingStep !== null && (
+              <p className="text-[11px] text-amber-400/80">
+                Playing degree {playingStep + 1} of{" "}
+                {activeMaqam.intervals.length}…
+              </p>
             )}
           </div>
-
-          {isPlaying && playingStep !== null && (
-            <p className="text-[11px] text-amber-400/80">
-              Playing degree {playingStep + 1} of{" "}
-              {activeMaqam.intervals.length}…
-            </p>
-          )}
-        </div>
-      )}
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

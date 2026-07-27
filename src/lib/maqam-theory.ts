@@ -189,6 +189,45 @@ export const MAQAMAT: MaqamPreset[] = [
     intervals: [1.5, 3, 5, 7, 10.5, 12, 14, 15.5],
     lowerJins: { jinsId: "sikah", rootOffset: 1.5 },
   },
+  {
+    id: "saba",
+    nameEn: "Maqam Saba",
+    nameAr: "مقام صبا",
+    tonic: "D",
+    description:
+      "One of the most distinctive maqamat — its diminished-4th lower jins gives it an unmistakably melancholic, unresolved character.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/saba.php",
+    // D(0), E½♭(1.5), F(3), Gb(4), A(7), Bb(8), C(10), D(12)
+    intervals: [0, 1.5, 3, 4, 7, 8, 10, 12],
+    lowerJins: { jinsId: "saba", rootOffset: 0 },
+    upperJins: { jinsId: "kurd", rootOffset: 7 },
+  },
+  {
+    id: "ajam",
+    nameEn: "Maqam Ajam",
+    nameAr: "مقام عجم",
+    tonic: "Bb",
+    description:
+      "The closest Arabic maqam to a Western major scale — bright, resolved, and commonly used for uplifting or triumphant passages.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/ajam.php",
+    // Bb(0), C(2), D(4), Eb(5), F(7), G(9), A(11), Bb(12)
+    intervals: [0, 2, 4, 5, 7, 9, 11, 12],
+    lowerJins: { jinsId: "ajam", rootOffset: 0 },
+    upperJins: { jinsId: "ajam", rootOffset: 7 },
+  },
+  {
+    id: "nikriz",
+    nameEn: "Maqam Nikriz",
+    nameAr: "مقام نكريز",
+    tonic: "G",
+    description:
+      "A bright, festive maqam built on Jins Nikriz — its augmented 2nd between the 3rd and 4th degrees gives it a sparkling, ornamented quality.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/nikriz.php",
+    // G(0), A(2), Bb(3), C#(6), D(7), E(9), F(10), G(12)
+    intervals: [0, 2, 3, 6, 7, 9, 10, 12],
+    lowerJins: { jinsId: "nikriz", rootOffset: 0 },
+    upperJins: { jinsId: "nahawand", rootOffset: 7 },
+  },
 ];
 
 /** True if a maqam includes any quarter-tone (half-integer) scale degree. */

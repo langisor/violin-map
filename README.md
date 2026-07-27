@@ -8,7 +8,10 @@ A browser-based violin built with React, TypeScript, Tone.js, and tonal — an i
 - **Two playback modes**
   - **Bow** — a sustained `Tone.Synth` voice with a slow attack, held for as long as you press.
   - **Pizzicato** — a `Tone.PluckSynth` (Karplus-Strong string synthesis) triggered on tap.
-- **Maqam scale-degree highlighting** — pick a maqam (Bayati, Rast, Hijaz, Nahawand, Kurd, Sikah) and every fingerboard cell whose pitch belongs to that maqam is highlighted with a golden ring and dot, on **both** the Violin and Oud fingerboards. Definitions live in `src/lib/maqam-theory.ts` (shared, instrument-agnostic). Picking a maqam with quarter-tone degrees (e.g. Bayati's half-flat 2nd) auto-switches the fingerboard to Quarter-tone resolution so those notes actually render.
+- **Maqam scale-degree highlighting** — pick from 9 common maqamat (Bayati, Rast, Hijaz, Nahawand, Kurd, Sikah, Saba, Ajam, Nikriz) and every fingerboard cell whose pitch belongs to that maqam is highlighted with a golden ring and dot, on **both** the Violin and Oud fingerboards. Definitions live in `src/lib/maqam-theory.ts` (shared, instrument-agnostic). Picking a maqam with quarter-tone degrees (e.g. Bayati's half-flat 2nd) auto-switches the fingerboard to Quarter-tone resolution so those notes actually render.
+- **Ajnas (tetrachord) breakdown** — each maqam links to the 1–2 *ajnas* (sing. jins) it's built from, e.g. Bayati = Jins Bayati (lower, on the tonic) + Jins Nahawand (upper, on the 5th). A common-ajnas library (Rast, Bayati, Hijaz, Kurd, Nahawand, Nikriz, Ajam, Saba, Sikah) lives alongside the maqamat in `src/lib/maqam-theory.ts`; the note names for each jins are derived on the fly for whichever maqam is selected, shown in the Maqam panel under the fingerboard.
+- **Play Maqam button** — plays the selected maqam's scale degrees in ascending order through the current instrument's own audio engine (bow/pluck for Violin, risha/tremolo for Oud), on a dedicated voice independent of any string. Implemented generically in `src/lib/maqam-playback.ts` so it works with any instrument's audio engine.
+- **Mobile-first responsive layout** — instrument and view switching use a real `Tabs` component (full-width, stacked on narrow screens), controls wrap into stacked groups instead of a single overflowing row, the maqam selector becomes a horizontally scrollable chip row on small screens, and fingerboards keep their natural horizontal scroll with a "scroll to see more" hint on mobile.
 - **Swappable tunings**
   - **Standard** — G3 · D4 · A4 · E5
   - **Eastern (G-D-G-D)** — G3 · D4 · G4 · D5
@@ -27,7 +30,7 @@ A browser-based violin built with React, TypeScript, Tone.js, and tonal — an i
 | UI framework | React + TypeScript |
 | Build tool | Vite |
 | Styling | Tailwind CSS v4 (via `@tailwindcss/vite`) |
-| Component primitives | shadcn/ui-style `Button` (hand-written, `cva`-based) |
+| Component primitives | shadcn/ui-style `Button`, `Card`, `Tabs` (`@radix-ui/react-tabs`), `Tooltip` (`@radix-ui/react-tooltip`) — hand-written, styled to the app's design tokens |
 | Music theory (note names, transposition, frequency ↔ note conversion) | [tonal](https://github.com/tonaljs/tonal) |
 | Audio synthesis | [Tone.js](https://tonejs.github.io/) |
 | Pitch detection | Custom autocorrelation (ACF2+) over the Web Audio API |
@@ -55,14 +58,21 @@ src/
 │   ├── violin_fingerboard.tsx     # The interactive string/position grid
 │   ├── violin_tuner.tsx           # Open-string playback buttons
 │   ├── pitch_tuner.tsx            # Mic-based pitch detection readout
+│   ├── oud-page.tsx               # Oud tab: tuning/resolution controls + fingerboard
+│   ├── oud-fingerboard.tsx        # Oud course/position grid, maqam-aware
+│   ├── maqam-panel.tsx            # Shared: maqam selector, ajnas breakdown, Play Maqam button
 │   └── ui/
-│       └── button.tsx             # shadcn-style Button primitive
+│       ├── button.tsx             # shadcn-style Button primitive
+│       ├── card.tsx               # shadcn-style Card/CardHeader/CardContent primitives
+│       ├── tabs.tsx                # shadcn-style Tabs, wrapping @radix-ui/react-tabs
+│       └── tooltip.tsx            # shadcn-style Tooltip, wrapping @radix-ui/react-tooltip
 ├── hooks/
 │   └── use_pitch_detector.ts      # Mic capture + detection loop (getUserMedia, AnalyserNode, rAF)
 └── lib/
     ├── violin_theory.ts           # Tunings, note/frequency helpers, frequency → note analysis
     ├── violin_audio.ts            # Tone.js synths (bow + pluck) per string
-    ├── maqam_theory.ts            # Maqamat presets + isNoteInMaqam(), shared by Violin and Oud
+    ├── maqam_theory.ts            # Maqamat + ajnas presets, isNoteInMaqam(), shared by Violin and Oud
+    ├── maqam_playback.ts          # playMaqamSequence() — sequences a maqam through any instrument's audio engine
     └── pitch_detection.ts         # Autocorrelation fundamental-frequency estimator
 ```
 

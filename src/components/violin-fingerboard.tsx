@@ -43,15 +43,18 @@ export function ViolinFingerboard({
   );
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-violin-border bg-gradient-to-b from-violin-panel-2 to-violin-bg p-5 shadow-inner">
+    <div className="w-full overflow-x-auto rounded-2xl border border-violin-border bg-gradient-to-b from-violin-panel-2 to-violin-bg p-3 shadow-inner sm:p-5">
+      <p className="mb-2 text-center text-[10px] text-violin-muted sm:hidden">
+        ← Scroll to see the full fingerboard →
+      </p>
       <div className={resolution === "quarter-tone" ? "min-w-[1360px]" : "min-w-[760px]"}>
         {strings
           .slice()
           .reverse()
           .map((str, rowIndex) => (
-            <div key={str.id} className="mb-2 flex items-center gap-3">
+            <div key={str.id} className="mb-2 flex items-center gap-2 sm:gap-3">
               <div
-                className="flex w-10 shrink-0 flex-col items-center text-sm font-semibold"
+                className="flex w-8 shrink-0 flex-col items-center text-sm font-semibold sm:w-10"
                 style={{ color: str.varnish }}
               >
                 <span>{str.label}</span>
