@@ -10,7 +10,7 @@ export function detectPitch(
   const size = buffer.length;
 
   const rms = Math.sqrt(buffer.reduce((sum, v) => sum + v * v, 0) / size);
-  if (rms < 0.01) return null; // effectively silent
+  if (rms < 0.02) return null; // effectively silent / ambient noise floor
 
   // Trim leading/trailing near-silence so the autocorrelation window is centered on signal.
   const threshold = 0.2;

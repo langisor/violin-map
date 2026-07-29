@@ -8,6 +8,7 @@ import {
 } from "@/lib/violin-theory";
 import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
+import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { cn } from "@/lib/utils";
 
 interface ViolinFingerboardProps {
@@ -15,6 +16,8 @@ interface ViolinFingerboardProps {
   strings: ViolinString[];
   resolution: Resolution;
   activeMaqam?: MaqamPreset | null;
+  /** Defaults to the built-in synth engine; pass the sampler engine to play recorded samples instead. */
+  engine?: SequencableAudioEngine<PlayMode>;
 }
 
 export function ViolinFingerboard({
@@ -22,6 +25,7 @@ export function ViolinFingerboard({
   strings,
   resolution,
   activeMaqam = null,
+  engine = violinAudioEngine,
 }: ViolinFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
   const steps = stepsFor(resolution);
@@ -29,17 +33,17 @@ export function ViolinFingerboard({
   const handlePress = useCallback(
     (stringId: string, step: number, frequency: number) => {
       setActiveCell(`${stringId}-${step}`);
-      violinAudioEngine.noteOn(stringId, frequency, mode);
+      void engine.noteOn(stringId, frequency, mode);
     },
-    [mode]
+    [mode, engine]
   );
 
   const handleRelease = useCallback(
     (stringId: string) => {
       setActiveCell(null);
-      violinAudioEngine.noteOff(stringId, mode);
+      engine.noteOff(stringId, mode);
     },
-    [mode]
+    [mode, engine]
   );
 
   return (

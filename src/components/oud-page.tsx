@@ -1,11 +1,17 @@
 import { useMemo, useState } from "react";
 import { OUD_TUNINGS, buildOudStrings } from "@/lib/oud-theory";
 import { oudAudioEngine, type OudPlayMode } from "@/lib/oud-audio";
+import { oudSamplerEngine } from "@/lib/instrument-samplers";
+import { useSamplerStatus } from "@/hooks/use-sampler-status";
 import type { Resolution } from "@/lib/violin-theory";
 import { MAQAMAT, type MaqamPreset } from "@/lib/maqam-theory";
 import { OudFingerboard } from "@/components/oud-fingerboard";
 import { OudTuner } from "@/components/oud-tuner";
 import { MaqamPanel } from "@/components/maqam-panel";
+import {
+  SoundSourceToggle,
+  type SoundSource,
+} from "@/components/sound-source-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -19,6 +25,7 @@ export function OudPage() {
   const [tuningId, setTuningId] = useState(OUD_TUNINGS[0].id);
   const [resolution, setResolution] = useState<Resolution>("quarter-tone");
   const [selectedMaqamId, setSelectedMaqamId] = useState<string>("bayati");
+  const [soundSource, setSoundSource] = useState<SoundSource>("synth");
 
   const tuning = useMemo(
     () => OUD_TUNINGS.find((t) => t.id === tuningId) ?? OUD_TUNINGS[0],
@@ -30,6 +37,12 @@ export function OudPage() {
     () => MAQAMAT.find((m) => m.id === selectedMaqamId) ?? null,
     [selectedMaqamId],
   );
+
+  const oudSamplerStatus = useSamplerStatus(oudSamplerEngine);
+  const activeEngine =
+    soundSource === "sampled" && oudSamplerStatus === "ready"
+      ? oudSamplerEngine
+      : oudAudioEngine;
 
   return (
     <div className="flex flex-col gap-5 sm:gap-6">
@@ -160,6 +173,14 @@ export function OudPage() {
               Semitone (12-EDO)
             </Button>
           </div>
+
+          <SoundSourceToggle
+            value={soundSource}
+            onChange={setSoundSource}
+            samplerEngine={oudSamplerEngine}
+            sampleFolderHint="public/samples/oud/"
+            activeClassName="bg-amber-600 text-amber-950 hover:bg-amber-500 font-semibold"
+          />
         </CardContent>
       </Card>
 
@@ -170,7 +191,7 @@ export function OudPage() {
           setSelectedMaqamId(selectedMaqamId === m.id ? "" : m.id)
         }
         onClear={() => setSelectedMaqamId("")}
-        engine={oudAudioEngine}
+        engine={activeEngine}
         mode={mode}
         playbackOctave={3}
         helperText="Select a maqam to highlight its scale degrees on the fingerboard, see the ajnas (tetrachords) it's built from, and play it back."
@@ -182,6 +203,7 @@ export function OudPage() {
         strings={strings}
         resolution={resolution}
         activeMaqam={activeMaqam}
+        engine={activeEngine}
       />
 
       {/* Course Tuner */}
@@ -189,7 +211,7 @@ export function OudPage() {
         <h3 className="mb-2 text-sm font-semibold text-violin-text">
           Tune Open String Courses ({tuning.label})
         </h3>
-        <OudTuner mode={mode} strings={strings} />
+        <OudTuner mode={mode} strings={strings} engine={activeEngine} />
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import {
 import type { OudString } from "@/lib/oud-theory";
 import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
 import { oudAudioEngine, type OudPlayMode } from "@/lib/oud-audio";
+import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { cn } from "@/lib/utils";
 
 interface OudFingerboardProps {
@@ -15,6 +16,8 @@ interface OudFingerboardProps {
   strings: OudString[];
   resolution: Resolution;
   activeMaqam: MaqamPreset | null;
+  /** Defaults to the built-in synth engine; pass the sampler engine to play recorded samples instead. */
+  engine?: SequencableAudioEngine<OudPlayMode>;
 }
 
 export function OudFingerboard({
@@ -22,6 +25,7 @@ export function OudFingerboard({
   strings,
   resolution,
   activeMaqam,
+  engine = oudAudioEngine,
 }: OudFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
   const steps = stepsFor(resolution);
@@ -29,17 +33,17 @@ export function OudFingerboard({
   const handlePress = useCallback(
     (stringId: string, step: number, frequency: number) => {
       setActiveCell(`${stringId}-${step}`);
-      oudAudioEngine.noteOn(stringId, frequency, mode);
+      void engine.noteOn(stringId, frequency, mode);
     },
-    [mode],
+    [mode, engine],
   );
 
   const handleRelease = useCallback(
     (stringId: string) => {
       setActiveCell(null);
-      oudAudioEngine.noteOff(stringId, mode);
+      engine.noteOff(stringId, mode);
     },
-    [mode],
+    [mode, engine],
   );
 
   return (

@@ -4,8 +4,14 @@ import { ViolinTuner } from "@/components/violin-tuner";
 import { PitchTuner } from "@/components/pitch-tuner";
 import { OudPage } from "@/components/oud-page";
 import { MaqamPanel } from "@/components/maqam-panel";
+import {
+  SoundSourceToggle,
+  type SoundSource,
+} from "@/components/sound-source-toggle";
 import { TUNINGS, buildStrings, type Resolution } from "@/lib/violin-theory";
 import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
+import { violinSamplerEngine } from "@/lib/instrument-samplers";
+import { useSamplerStatus } from "@/hooks/use-sampler-status";
 import {
   MAQAMAT,
   maqamNeedsQuarterTones,
@@ -32,12 +38,19 @@ export default function App() {
   const [tuningId, setTuningId] = useState(TUNINGS[0].id);
   const [resolution, setResolution] = useState<Resolution>("semitone");
   const [selectedMaqamId, setSelectedMaqamId] = useState<string>("");
+  const [soundSource, setSoundSource] = useState<SoundSource>("synth");
 
   const tuning = useMemo(
     () => TUNINGS.find((t) => t.id === tuningId) ?? TUNINGS[0],
     [tuningId],
   );
   const strings = useMemo(() => buildStrings(tuning), [tuning]);
+
+  const violinSamplerStatus = useSamplerStatus(violinSamplerEngine);
+  const activeEngine =
+    soundSource === "sampled" && violinSamplerStatus === "ready"
+      ? violinSamplerEngine
+      : violinAudioEngine;
 
   const activeMaqam: MaqamPreset | null = useMemo(
     () => MAQAMAT.find((m) => m.id === selectedMaqamId) ?? null,
@@ -121,6 +134,13 @@ export default function App() {
                 </Button>
               </div>
 
+              <SoundSourceToggle
+                value={soundSource}
+                onChange={setSoundSource}
+                samplerEngine={violinSamplerEngine}
+                sampleFolderHint="public/samples/violin/"
+              />
+
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-violin-muted">Tuning</span>
                 {TUNINGS.map((t) => (
@@ -174,7 +194,7 @@ export default function App() {
             selectedMaqamId={selectedMaqamId}
             onSelect={handleSelectMaqam}
             onClear={() => setSelectedMaqamId("")}
-            engine={violinAudioEngine}
+            engine={activeEngine}
             mode={mode}
             playbackOctave={4}
             helperText="Select a maqam to highlight its scale degrees, see the ajnas (tetrachords) it's built from, and play it back. Selecting one with quarter-tone degrees switches Resolution to Quarter-tone automatically."
@@ -185,13 +205,14 @@ export default function App() {
             strings={strings}
             resolution={resolution}
             activeMaqam={activeMaqam}
+            engine={activeEngine}
           />
 
           <div>
             <h2 className="mb-2 text-sm font-semibold text-violin-text">
               Tune open strings
             </h2>
-            <ViolinTuner mode={mode} strings={strings} />
+            <ViolinTuner mode={mode} strings={strings} engine={activeEngine} />
           </div>
         </>
       )}

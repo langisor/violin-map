@@ -1,17 +1,20 @@
 import { noteFrequency, type ViolinString } from "@/lib/violin-theory";
 import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
+import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { Button } from "@/components/ui/button";
 
 interface ViolinTunerProps {
   mode: PlayMode;
   strings: ViolinString[];
+  /** Defaults to the built-in synth engine; pass the sampler engine to play recorded samples instead. */
+  engine?: SequencableAudioEngine<PlayMode>;
 }
 
-export function ViolinTuner({ mode, strings }: ViolinTunerProps) {
+export function ViolinTuner({ mode, strings, engine = violinAudioEngine }: ViolinTunerProps) {
   const playOpenString = async (stringId: string, openNote: string) => {
-    await violinAudioEngine.noteOn(stringId, noteFrequency(openNote), mode);
+    await engine.noteOn(stringId, noteFrequency(openNote), mode);
     setTimeout(
-      () => violinAudioEngine.noteOff(stringId, mode),
+      () => engine.noteOff(stringId, mode),
       mode === "bow" ? 1500 : 50
     );
   };

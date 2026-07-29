@@ -1,17 +1,20 @@
 import { noteFrequency } from "@/lib/violin-theory";
 import type { OudString } from "@/lib/oud-theory";
 import { oudAudioEngine, type OudPlayMode } from "@/lib/oud-audio";
+import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { Button } from "@/components/ui/button";
 
 interface OudTunerProps {
   mode: OudPlayMode;
   strings: OudString[];
+  /** Defaults to the built-in synth engine; pass the sampler engine to play recorded samples instead. */
+  engine?: SequencableAudioEngine<OudPlayMode>;
 }
 
-export function OudTuner({ mode, strings }: OudTunerProps) {
+export function OudTuner({ mode, strings, engine = oudAudioEngine }: OudTunerProps) {
   const playOpenString = async (stringId: string, openNote: string) => {
-    await oudAudioEngine.noteOn(stringId, noteFrequency(openNote), mode);
-    setTimeout(() => oudAudioEngine.noteOff(stringId, mode), 1500);
+    await engine.noteOn(stringId, noteFrequency(openNote), mode);
+    setTimeout(() => engine.noteOff(stringId, mode), 1500);
   };
 
   return (
