@@ -33,6 +33,7 @@ export class SamplerEngine {
 
   constructor(config: SamplerConfig) {
     if (Object.keys(config.urls).length === 0) {
+      console.log("SamplerEngine-Constructor: Empty config:SamplerConfig...")
       this.status = "empty";
       return;
     }
@@ -63,6 +64,7 @@ export class SamplerEngine {
 
   async ensureStarted() {
     if (!this.started) {
+      console.log("ensureStarted: Tone.start()....")
       await Tone.start();
       this.started = true;
     }

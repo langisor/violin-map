@@ -10,7 +10,7 @@ export interface SequencableAudioEngine<Mode extends string> {
 }
 
 const MAQAM_VOICE_ID = "maqam-sequence";
-const NOTE_MS = 420;
+const NOTE_MS = 1000;
 const GAP_MS = 70;
 
 /**

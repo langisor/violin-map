@@ -30,11 +30,11 @@ export const VIOLIN_SAMPLE_URLS: Record<string, string> = {
 export const OUD_SAMPLE_URLS: Record<string, string> = {
   A2: "A2.mp3",
   B2: "B2.mp3",
-  Cs4: "Cs4.mp3",
+  // Cs4: "Cs4.mp3",
   D3: "D3.mp3",
   E3: "E3.mp3",
   G3: "G3.mp3",
-  Fs2: "Fs2.mp3",
+  // Fs2: "Fs2.mp3",
 };
 
 export const violinSamplerEngine = new SamplerEngine({
