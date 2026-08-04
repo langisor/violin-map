@@ -28,16 +28,13 @@ export const VIOLIN_SAMPLE_URLS: Record<string, string> = {
  * highest fretted positions (C2-C5). See public/samples/oud/README.md.
  */
 export const OUD_SAMPLE_URLS: Record<string, string> = {
-  C2: "C2.mp3",
-  E2: "E2.mp3",
-  "G#2": "G#2.mp3",
-  C3: "C3.mp3",
+  A2: "A2.mp3",
+  B2: "B2.mp3",
+  Cs4: "Cs4.mp3",
+  D3: "D3.mp3",
   E3: "E3.mp3",
-  "G#3": "G#3.mp3",
-  C4: "C4.mp3",
-  E4: "E4.mp3",
-  "G#4": "G#4.mp3",
-  C5: "C5.mp3",
+  G3: "G3.mp3",
+  Fs2: "Fs2.mp3",
 };
 
 export const violinSamplerEngine = new SamplerEngine({
