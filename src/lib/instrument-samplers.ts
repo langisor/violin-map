@@ -15,12 +15,12 @@ import { SamplerEngine } from "@/lib/sampler-audio";
 export const VIOLIN_SAMPLE_URLS: Record<string, string> = {
   G3: "G3.mp3",
   B3: "B3.mp3",
-  "D#4": "D#4.mp3",
-  G4: "G4.mp3",
-  B4: "B4.mp3",
-  "D#5": "D#5.mp3",
-  G5: "G5.mp3",
   B5: "B5.mp3",
+  B4: "B4.mp3",
+  // "D#4": "D#4.mp3",
+  // "D5": "D5.mp3",
+  G4: "G4.mp3",
+  G5: "G5.mp3",
 };
 
 /**
