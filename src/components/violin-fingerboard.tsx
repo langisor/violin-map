@@ -47,11 +47,11 @@ export function ViolinFingerboard({
   );
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-violin-border bg-gradient-to-b from-violin-panel-2 to-violin-bg p-3 shadow-inner sm:p-5">
+    <div className="w-full overflow-x-auto rounded-2xl border border-violin-border bg-linear-to-b from-violin-panel-2 to-violin-bg p-3 shadow-inner sm:p-5">
       <p className="mb-2 text-center text-[10px] text-violin-muted sm:hidden">
         ← Scroll to see the full fingerboard →
       </p>
-      <div className={resolution === "quarter-tone" ? "min-w-[1360px]" : "min-w-[760px]"}>
+      <div className={resolution === "quarter-tone" ? "min-w-340" : "min-w-190"}>
         {strings
           .slice()
           .reverse()
@@ -95,7 +95,7 @@ export function ViolinFingerboard({
                       }}
                       onTouchEnd={() => handleRelease(str.id)}
                       className={cn(
-                        "relative flex h-14 flex-1 flex-col items-center justify-center rounded-md border text-xs transition-colors select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                        "relative flex h-14 flex-1 flex-col items-center justify-center rounded-md border text-xs transition-colors select-none focus-visible:outline focus-visible:outline-offset-2",
                         isOpen
                           ? "border-violin-border bg-violin-cell-open"
                           : "border-violin-border bg-violin-cell",

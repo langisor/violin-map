@@ -47,13 +47,13 @@ export function OudFingerboard({
   );
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-amber-900/40 bg-gradient-to-b from-[#251910] to-[#140c07] p-3 shadow-2xl sm:p-5">
+    <div className="w-full overflow-x-auto rounded-2xl border border-amber-900/40 bg-linear-to-b from-[#251910] to-[#140c07] p-3 shadow-2xl sm:p-5">
       <p className="mb-2 text-center text-[10px] text-violin-muted sm:hidden">
         ← Scroll to see the full fingerboard →
       </p>
       <div
         className={
-          resolution === "quarter-tone" ? "min-w-[1360px]" : "min-w-[760px]"
+          resolution === "quarter-tone" ? "min-w-340" : "min-w-190"
         }
       >
         {strings
@@ -121,7 +121,7 @@ export function OudFingerboard({
                         }}
                         onTouchEnd={() => handleRelease(str.id)}
                         className={cn(
-                          "relative flex h-14 flex-1 flex-col items-center justify-center rounded-md border text-xs transition-all select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+                          "relative flex h-14 flex-1 flex-col items-center justify-center rounded-md border text-xs transition-all select-none focus-visible:outline focus-visible:outline-offset-2",
                           isOpen
                             ? "border-amber-900/60 bg-amber-950/40"
                             : "border-amber-950/80 bg-[#1e130b]",
