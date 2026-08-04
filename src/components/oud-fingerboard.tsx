@@ -141,13 +141,13 @@ export function OudFingerboard({
                         >
                           {noteName}
                         </span>
-                        <span className="text-[10px] text-amber-600/70">
+                        <span className="text-[9px] text-white-600/70">
                           {step}
                         </span>
 
                         {/* Maqam Note Indicator */}
                         {inMaqam && (
-                          <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-300" />
+                          <span className="absolute top-1 right-1 h-1  w-1 rounded-full bg-amber-400 shadow-sm shadow-amber-300" />
                         )}
                       </button>
                     );

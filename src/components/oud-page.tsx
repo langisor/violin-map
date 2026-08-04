@@ -47,7 +47,7 @@ export function OudPage() {
   return (
     <div className="flex flex-col gap-5 sm:gap-6">
       {/* Overview Banner */}
-      <div className="rounded-2xl border border-amber-900/40 bg-gradient-to-r from-[#24160c] via-[#1a1008] to-[#120a05] p-4 shadow-xl sm:p-6">
+      <div className="rounded-2xl border border-amber-900/40 bg-linear-to-r from-[#24160c] via-[#1a1008] to-[#120a05] p-4 shadow-xl sm:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
