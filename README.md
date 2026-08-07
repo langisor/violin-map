@@ -12,6 +12,7 @@ A browser-based violin built with React, TypeScript, Tone.js, and tonal — an i
 - **Ajnas (tetrachord) breakdown** — each maqam links to the 1–2 *ajnas* (sing. jins) it's built from, e.g. Bayati = Jins Bayati (lower, on the tonic) + Jins Nahawand (upper, on the 5th). A common-ajnas library (Rast, Bayati, Hijaz, Kurd, Nahawand, Nikriz, Ajam, Saba, Sikah) lives alongside the maqamat in `src/lib/maqam-theory.ts`; the note names for each jins are derived on the fly for whichever maqam is selected, shown in the Maqam panel under the fingerboard.
 - **Play Maqam button** — plays the selected maqam's scale degrees in ascending order through the current instrument's own audio engine (bow/pluck for Violin, risha/tremolo for Oud), on a dedicated voice independent of any string. Implemented generically in `src/lib/maqam-playback.ts` so it works with any instrument's audio engine.
 - **Mobile-first responsive layout** — instrument and view switching use a real `Tabs` component (full-width, stacked on narrow screens), controls wrap into stacked groups instead of a single overflowing row, the maqam selector becomes a horizontally scrollable chip row on small screens, and fingerboards keep their natural horizontal scroll with a "scroll to see more" hint on mobile.
+- **Real recorded samples (optional)** — a **Sound** toggle (Synth / Sampled) next to the mode controls lets you switch each instrument from its synthesized voice to your own recorded notes. Samples are organized one small folder per string (Violin) or course (Oud), each with its own `README.txt` listing the five note files to drop in — see [Adding your own samples](#adding-your-own-samples). The "Sampled" button is disabled until every folder's files have loaded.
 - **Swappable tunings**
   - **Standard** — G3 · D4 · A4 · E5
   - **Eastern (G-D-G-D)** — G3 · D4 · G4 · D5
@@ -121,6 +122,28 @@ The pitch detector has the same toggle: in Quarter-tone mode, `analyzeFrequency`
 `usePitchDetector` requests microphone access, feeds the raw time-domain samples from an `AnalyserNode` into `detectPitch` (autocorrelation with parabolic interpolation for sub-sample accuracy) on every animation frame, and returns the estimated frequency. `analyzeFrequency` then converts that frequency to a MIDI number (`69 + 12·log2(f / 440)`), a note name (`Note.fromMidi`), and a cents offset from the nearest tempered pitch.
 
 **Limitations:** this is a single-voice pitch tracker — it estimates one fundamental frequency per frame, so it isn't reliable on double-stops or chords, and very quiet or noisy input is discarded rather than guessed at.
+
+### Adding your own samples
+
+Each string (Violin) or course (Oud) gets its own small `Tone.Sampler`, loaded from its own folder, instead of one sampler pitch-shifted across the whole instrument — a real string's recorded timbre only sounds right pitch-shifted a few semitones in either direction, not across the whole fingerboard. Folders live under `public/samples/`:
+
+```
+public/samples/
+├── violin/
+│   ├── string-1/   # G string  — README.txt lists: G3, Bb3, Db4, E4, G4
+│   ├── string-2/   # D string  — D4, F4, Ab4, B4, D5
+│   ├── string-3/   # A string  — A4, C5, Eb5, Gb5, A5
+│   └── string-4/   # E string  — E5, G5, Bb5, Db6, E6
+└── oud/
+    ├── course-1/   # lowest  — C2, Eb2, Gb2, A2, C3
+    ├── course-2/   # F2, Ab2, B2, D3, F3
+    ├── course-3/   # A2, C3, Eb3, Gb3, A3
+    ├── course-4/   # D3, F3, Ab3, B3, D4
+    ├── course-5/   # G3, Bb3, Db4, E4, G4
+    └── course-6/   # highest — C4, Eb4, Gb4, A4, C5
+```
+
+Record (or export from Audacity) each note as an mp3 named exactly as listed in that folder's `README.txt`, and drop it in — no code changes needed. The five notes per folder are a minor third apart and cover that string/course's practical range; `Tone.Sampler` pitch-shifts smoothly for anything in between. The mapping from folder to string/course id lives in `src/lib/instrument-samplers.ts`, and the routing (matching a fingerboard press to the right folder's sampler, or the nearest one by pitch for the Play Maqam sequencer) lives in `MultiSamplerEngine` in `src/lib/sampler-audio.ts`.
 
 ## Browser requirements
 
