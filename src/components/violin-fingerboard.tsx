@@ -6,6 +6,7 @@ import {
   type ViolinString,
   type Resolution,
   type ViolinPosition,
+  type NoteNotation,
 } from "@/lib/violin-theory";
 import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
@@ -21,6 +22,7 @@ interface ViolinFingerboardProps {
   activeScale?: WesternScalePreset | null;
   orientation?: "horizontal" | "vertical";
   position?: ViolinPosition;
+  notation?: NoteNotation;
   playingFrequency?: number | null;
   /** Defaults to the built-in synth engine; pass the sampler engine to play recorded samples instead. */
   engine?: SequencableAudioEngine<PlayMode>;
@@ -34,6 +36,7 @@ export function ViolinFingerboard({
   activeScale = null,
   orientation = "horizontal",
   position = 1,
+  notation = "sharps",
   playingFrequency = null,
   engine = violinAudioEngine,
 }: ViolinFingerboardProps) {
@@ -99,7 +102,7 @@ export function ViolinFingerboard({
                 )}
               >
                 {steps.map((step) => {
-                  const noteName = labelAtStep(str.openNote, step);
+                  const noteName = labelAtStep(str.openNote, step, notation);
                   const frequency = frequencyAtStep(str.openNote, step);
                   const cellKey = `${str.id}-${step}`;
                   const isActive = activeCell === cellKey;

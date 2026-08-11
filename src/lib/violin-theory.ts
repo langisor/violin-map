@@ -55,6 +55,7 @@ export function buildStrings(tuning: TuningPreset): ViolinString[] {
 //                  the lower note raised a quarter tone, e.g. "F4+".
 
 export type Resolution = "semitone" | "quarter-tone";
+export type NoteNotation = "sharps" | "flats";
 
 export type ViolinPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
@@ -97,10 +98,31 @@ export function frequencyAtStep(openNote: string, step: number): number {
  * Half-integer steps (quarter tones) are labeled as the note below, raised
  * a quarter tone, using a trailing "+" (half-sharp).
  */
-export function labelAtStep(openNote: string, step: number): string {
-  if (Number.isInteger(step)) return noteAtPosition(openNote, step);
+export function formatNoteName(
+  noteName: string,
+  notation: NoteNotation = "sharps",
+): string {
+  const note = Note.get(noteName);
+  if (note.chroma === undefined || note.oct === undefined) return noteName;
+
+  const names =
+    notation === "flats"
+      ? ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
+      : ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+  return `${names[note.chroma]}${note.oct}`;
+}
+
+export function labelAtStep(
+  openNote: string,
+  step: number,
+  notation: NoteNotation = "sharps",
+): string {
+  if (Number.isInteger(step)) {
+    return formatNoteName(noteAtPosition(openNote, step), notation);
+  }
   const lowerNote = noteAtPosition(openNote, Math.floor(step));
-  return `${lowerNote}+`;
+  return `${formatNoteName(lowerNote, notation)}+`;
 }
 
 /** Generates the sequence of fingerboard steps for a resolution: whole steps for

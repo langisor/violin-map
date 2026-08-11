@@ -9,7 +9,12 @@ import {
   SoundSourceToggle,
   type SoundSource,
 } from "@/components/sound-source-toggle";
-import { TUNINGS, buildStrings, type Resolution } from "@/lib/violin-theory";
+import {
+  TUNINGS,
+  buildStrings,
+  type NoteNotation,
+  type Resolution,
+} from "@/lib/violin-theory";
 import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { violinSamplerEngine } from "@/lib/instrument-samplers";
 import { useSamplerStatus } from "@/hooks/use-sampler-status";
@@ -41,6 +46,7 @@ export default function App() {
   const [mode, setMode] = useState<PlayMode>("bow");
   const [tuningId, setTuningId] = useState(TUNINGS[0].id);
   const [resolution, setResolution] = useState<Resolution>("semitone");
+  const [notation, setNotation] = useState<NoteNotation>("sharps");
   const [selectedMaqamId, setSelectedMaqamId] = useState<string>("");
   const [soundSource, setSoundSource] = useState<SoundSource>("synth");
   const [scaleSystem, setScaleSystem] = useState<ScaleSystem>("eastern");
@@ -198,15 +204,29 @@ export default function App() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-violin-muted">Note marks</span>
+                <Button
+                  size="sm"
+                  variant={notation === "sharps" ? "default" : "outline"}
+                  onClick={() => setNotation("sharps")}
+                >
+                  Sharps (#)
+                </Button>
+                <Button
+                  size="sm"
+                  variant={notation === "flats" ? "default" : "outline"}
+                  onClick={() => setNotation("flats")}
+                >
+                  Flats (b)
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-violin-muted">View</span>
                 <Button size="sm" variant={orientation === "horizontal" ? "default" : "outline"} onClick={() => setOrientation("horizontal")}>Horizontal</Button>
                 <Button size="sm" variant={orientation === "vertical" ? "default" : "outline"} onClick={() => setOrientation("vertical")}>Vertical</Button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-violin-muted">Position</span>
-                {VIOLIN_POSITIONS.map((item) => <Button key={item.id} size="sm" variant={position === item.id ? "default" : "outline"} onClick={() => setPosition(item.id)}>{item.label}</Button>)}
-              </div>
             </CardContent>
           </Card>
 
@@ -244,9 +264,24 @@ export default function App() {
             activeScale={selectedScale}
             orientation={orientation}
             position={position}
+            notation={notation}
             playingFrequency={playingFrequency}
             engine={activeEngine}
           />
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-violin-muted">Position</span>
+            {VIOLIN_POSITIONS.map((item) => (
+              <Button
+                key={item.id}
+                size="sm"
+                variant={position === item.id ? "default" : "outline"}
+                onClick={() => setPosition(item.id)}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
 
           <div>
             <h2 className="mb-2 text-sm font-semibold text-violin-text">
