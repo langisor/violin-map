@@ -60,12 +60,24 @@ export function ViolinFingerboard({
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-violin-border bg-linear-to-b from-violin-panel-2 to-violin-bg p-3 shadow-inner sm:p-5">
       {orientation === "horizontal" && <p className="mb-2 text-center text-[10px] text-violin-muted sm:hidden">← Scroll to see the full fingerboard →</p>}
-      <div className={cn(orientation === "horizontal" && (resolution === "quarter-tone" ? "min-w-340" : "min-w-190"), orientation === "vertical" && "mx-auto w-fit") }>
+      <div
+        className={cn(
+          orientation === "horizontal" &&
+            (resolution === "quarter-tone" ? "min-w-340" : "min-w-190"),
+          orientation === "vertical" && "mx-auto flex w-fit items-start justify-center gap-2 sm:gap-3",
+        )}
+      >
         {strings
           .slice()
           .reverse()
           .map((str, rowIndex) => (
-            <div key={str.id} className={cn("mb-2 flex gap-2 sm:gap-3", orientation === "vertical" ? "flex-col items-center" : "items-center")}>
+            <div
+              key={str.id}
+              className={cn(
+                "mb-2 flex gap-2 sm:gap-3",
+                orientation === "vertical" ? "mb-0 w-14 flex-col items-center sm:w-16" : "items-center",
+              )}
+            >
               <div
                 className="flex w-8 shrink-0 flex-col items-center text-sm font-semibold sm:w-10"
                 style={{ color: str.varnish }}
@@ -80,7 +92,12 @@ export function ViolinFingerboard({
                   }}
                 />
               </div>
-              <div className={cn("flex gap-1", orientation === "horizontal" ? "flex-1" : "flex-col")}>
+              <div
+                className={cn(
+                  "flex gap-1",
+                  orientation === "horizontal" ? "flex-1" : "w-full flex-col",
+                )}
+              >
                 {steps.map((step) => {
                   const noteName = labelAtStep(str.openNote, step);
                   const frequency = frequencyAtStep(str.openNote, step);
@@ -107,6 +124,7 @@ export function ViolinFingerboard({
                       onTouchEnd={() => handleRelease(str.id)}
                       className={cn(
                         "relative flex h-14 flex-1 flex-col items-center justify-center rounded-md border text-xs transition-colors select-none focus-visible:outline focus-visible:outline-offset-2",
+                        orientation === "vertical" && "h-12 w-full shrink-0",
                         isOpen
                           ? "border-violin-border bg-violin-cell-open"
                           : "border-violin-border bg-violin-cell",
