@@ -4,6 +4,7 @@ import { ViolinTuner } from "@/components/violin-tuner";
 import { PitchTuner } from "@/components/pitch-tuner";
 import { OudPage } from "@/components/oud-page";
 import { MaqamPanel } from "@/components/maqam-panel";
+import { WesternScalePanel } from "@/components/western-scale-panel";
 import {
   SoundSourceToggle,
   type SoundSource,
@@ -20,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VIOLIN_POSITIONS, type ViolinPosition } from "@/lib/violin-theory";
+import { type WesternScalePreset } from "@/lib/western-scale-theory";
 import {
   Tooltip,
   TooltipContent,
@@ -28,6 +31,7 @@ import {
 
 type Instrument = "violin" | "oud";
 type View = "play" | "pitch";
+type ScaleSystem = "eastern" | "western";
 
 export default function App() {
   const [instrument, setInstrument] = useState<Instrument>("violin");
@@ -39,6 +43,11 @@ export default function App() {
   const [resolution, setResolution] = useState<Resolution>("semitone");
   const [selectedMaqamId, setSelectedMaqamId] = useState<string>("");
   const [soundSource, setSoundSource] = useState<SoundSource>("synth");
+  const [scaleSystem, setScaleSystem] = useState<ScaleSystem>("eastern");
+  const [selectedScale, setSelectedScale] = useState<WesternScalePreset | null>(null);
+  const [orientation, setOrientation] = useState<"horizontal" | "vertical">("horizontal");
+  const [position, setPosition] = useState<ViolinPosition>(1);
+  const [playingFrequency, setPlayingFrequency] = useState<number | null>(null);
 
   const tuning = useMemo(
     () => TUNINGS.find((t) => t.id === tuningId) ?? TUNINGS[0],
@@ -60,6 +69,7 @@ export default function App() {
   const handleSelectMaqam = (maqam: MaqamPreset) => {
     const nextId = selectedMaqamId === maqam.id ? "" : maqam.id;
     setSelectedMaqamId(nextId);
+    setSelectedScale(null);
     // Most maqamat need quarter tones (e.g. Bayati's half-flat 2nd degree) —
     // switch resolution up automatically so the highlighted notes actually exist.
     if (nextId && maqamNeedsQuarterTones(maqam)) {
@@ -186,11 +196,28 @@ export default function App() {
                   </TooltipContent>
                 </Tooltip>
               </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-violin-muted">View</span>
+                <Button size="sm" variant={orientation === "horizontal" ? "default" : "outline"} onClick={() => setOrientation("horizontal")}>Horizontal</Button>
+                <Button size="sm" variant={orientation === "vertical" ? "default" : "outline"} onClick={() => setOrientation("vertical")}>Vertical</Button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-violin-muted">Position</span>
+                {VIOLIN_POSITIONS.map((item) => <Button key={item.id} size="sm" variant={position === item.id ? "default" : "outline"} onClick={() => setPosition(item.id)}>{item.label}</Button>)}
+              </div>
             </CardContent>
           </Card>
 
-          {/* Maqam Scale Degree Highlighting + Ajnas breakdown + Play */}
-          <MaqamPanel
+          <Tabs value={scaleSystem} onValueChange={(value) => { setScaleSystem(value as ScaleSystem); setPlayingFrequency(null); }}>
+            <TabsList className="grid w-full grid-cols-2 sm:inline-flex sm:w-auto">
+              <TabsTrigger value="eastern">Eastern (Maqamat)</TabsTrigger>
+              <TabsTrigger value="western">Western (Scales)</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {scaleSystem === "eastern" ? <MaqamPanel
             selectedMaqamId={selectedMaqamId}
             onSelect={handleSelectMaqam}
             onClear={() => setSelectedMaqamId("")}
@@ -198,13 +225,26 @@ export default function App() {
             mode={mode}
             playbackOctave={4}
             helperText="Select a maqam to highlight its scale degrees, see the ajnas (tetrachords) it's built from, and play it back. Selecting one with quarter-tone degrees switches Resolution to Quarter-tone automatically."
-          />
+            onPlayingFrequency={setPlayingFrequency}
+          /> : <WesternScalePanel
+            selectedScale={selectedScale}
+            onSelect={(scale) => { setSelectedScale(scale); setSelectedMaqamId(""); }}
+            onClear={() => setSelectedScale(null)}
+            onPlayingFrequency={setPlayingFrequency}
+            engine={activeEngine}
+            mode={mode}
+            playbackOctave={4}
+          />}
 
           <ViolinFingerboard
             mode={mode}
             strings={strings}
             resolution={resolution}
             activeMaqam={activeMaqam}
+            activeScale={selectedScale}
+            orientation={orientation}
+            position={position}
+            playingFrequency={playingFrequency}
             engine={activeEngine}
           />
 

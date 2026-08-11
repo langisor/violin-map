@@ -1,21 +1,27 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   stepsFor,
   labelAtStep,
   frequencyAtStep,
   type ViolinString,
   type Resolution,
+  type ViolinPosition,
 } from "@/lib/violin-theory";
 import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
 import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { cn } from "@/lib/utils";
+import { isNoteInWesternScale, type WesternScalePreset } from "@/lib/western-scale-theory";
 
 interface ViolinFingerboardProps {
   mode: PlayMode;
   strings: ViolinString[];
   resolution: Resolution;
   activeMaqam?: MaqamPreset | null;
+  activeScale?: WesternScalePreset | null;
+  orientation?: "horizontal" | "vertical";
+  position?: ViolinPosition;
+  playingFrequency?: number | null;
   /** Defaults to the built-in synth engine; pass the sampler engine to play recorded samples instead. */
   engine?: SequencableAudioEngine<PlayMode>;
 }
@@ -25,10 +31,15 @@ export function ViolinFingerboard({
   strings,
   resolution,
   activeMaqam = null,
+  activeScale = null,
+  orientation = "horizontal",
+  position = 1,
+  playingFrequency = null,
   engine = violinAudioEngine,
 }: ViolinFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
-  const steps = stepsFor(resolution);
+  const positionStart = useMemo(() => ({ 1: 0, 2: 3, 3: 5, 4: 7, 5: 8, 6: 10, 7: 12, 8: 14 })[position], [position]);
+  const steps = useMemo(() => stepsFor(resolution).map((step) => step + positionStart), [resolution, positionStart]);
 
   const handlePress = useCallback(
     (stringId: string, step: number, frequency: number) => {
@@ -48,15 +59,13 @@ export function ViolinFingerboard({
 
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-violin-border bg-linear-to-b from-violin-panel-2 to-violin-bg p-3 shadow-inner sm:p-5">
-      <p className="mb-2 text-center text-[10px] text-violin-muted sm:hidden">
-        ← Scroll to see the full fingerboard →
-      </p>
-      <div className={resolution === "quarter-tone" ? "min-w-340" : "min-w-190"}>
+      {orientation === "horizontal" && <p className="mb-2 text-center text-[10px] text-violin-muted sm:hidden">← Scroll to see the full fingerboard →</p>}
+      <div className={cn(orientation === "horizontal" && (resolution === "quarter-tone" ? "min-w-340" : "min-w-190"), orientation === "vertical" && "mx-auto w-fit") }>
         {strings
           .slice()
           .reverse()
           .map((str, rowIndex) => (
-            <div key={str.id} className="mb-2 flex items-center gap-2 sm:gap-3">
+            <div key={str.id} className={cn("mb-2 flex gap-2 sm:gap-3", orientation === "vertical" ? "flex-col items-center" : "items-center")}>
               <div
                 className="flex w-8 shrink-0 flex-col items-center text-sm font-semibold sm:w-10"
                 style={{ color: str.varnish }}
@@ -71,7 +80,7 @@ export function ViolinFingerboard({
                   }}
                 />
               </div>
-              <div className="flex flex-1 gap-1">
+              <div className={cn("flex gap-1", orientation === "horizontal" ? "flex-1" : "flex-col")}>
                 {steps.map((step) => {
                   const noteName = labelAtStep(str.openNote, step);
                   const frequency = frequencyAtStep(str.openNote, step);
@@ -82,6 +91,8 @@ export function ViolinFingerboard({
                   const inMaqam = activeMaqam
                     ? isNoteInMaqam(str.openNote, step, activeMaqam)
                     : false;
+                  const inScale = activeScale ? isNoteInWesternScale(str.openNote, step, activeScale) : false;
+                  const isPlaying = playingFrequency !== null && Math.abs(1200 * Math.log2(frequency / playingFrequency)) < 20;
                   return (
                     <button
                       key={cellKey}
@@ -100,22 +111,23 @@ export function ViolinFingerboard({
                           ? "border-violin-border bg-violin-cell-open"
                           : "border-violin-border bg-violin-cell",
                         isQuarterTone && "border-dashed bg-violin-bg/60",
-                        inMaqam &&
+                        (inMaqam || inScale) &&
                           "border-amber-500/80 bg-amber-950/40 font-semibold ring-1 ring-amber-500/50",
-                        isActive && "border-violin-e bg-violin-cell-active"
+                        isActive && "border-violin-e bg-violin-cell-active",
+                        isPlaying && "z-10 border-cyan-300 bg-cyan-400/30 text-cyan-50 ring-2 ring-cyan-300 shadow-lg shadow-cyan-400/30"
                       )}
                       style={{ outlineColor: str.varnish }}
                     >
                       <span
                         className={cn(
                           "font-medium",
-                          inMaqam ? "text-amber-300" : "text-violin-text"
+                          inMaqam || inScale ? "text-amber-300" : "text-violin-text"
                         )}
                       >
                         {noteName}
                       </span>
                       <span className="text-[10px] text-violin-muted">{step}</span>
-                      {inMaqam && (
+                      {(inMaqam || inScale) && (
                         <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-300" />
                       )}
                     </button>
@@ -136,6 +148,7 @@ export function ViolinFingerboard({
             {activeMaqam.nameAr}).
           </span>
         )}
+        {activeScale && <span className="ml-1 font-medium text-sky-300">Golden cells belong to {activeScale.tonic} {activeScale.kind}; cyan marks the note currently playing.</span>}
       </p>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Square, ExternalLink, Info } from "lucide-react";
+import { Note } from "tonal";
 import {
   MAQAMAT,
   getJins,
@@ -28,6 +29,7 @@ interface MaqamPanelProps<Mode extends string> {
   /** Octave the tonic is played at when sequencing, e.g. 3 for Oud, 4 for Violin. */
   playbackOctave?: number;
   helperText?: string;
+  onPlayingFrequency?: (frequency: number | null) => void;
 }
 
 function InfoHint({ text }: { text: string }) {
@@ -86,6 +88,7 @@ export function MaqamPanel<Mode extends string>({
   mode,
   playbackOctave = 4,
   helperText,
+  onPlayingFrequency,
 }: MaqamPanelProps<Mode>) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playingStep, setPlayingStep] = useState<number | null>(null);
@@ -102,7 +105,8 @@ export function MaqamPanel<Mode extends string>({
     stopRef.current?.();
     setIsPlaying(false);
     setPlayingStep(null);
-  }, [selectedMaqamId, mode]);
+    onPlayingFrequency?.(null);
+  }, [selectedMaqamId, mode, onPlayingFrequency]);
 
   const handlePlay = () => {
     if (!activeMaqam) return;
@@ -112,10 +116,15 @@ export function MaqamPanel<Mode extends string>({
       engine,
       mode,
       playbackOctave,
-      (i) => setPlayingStep(i),
+      (i) => {
+        setPlayingStep(i);
+        const tonicFrequency = Note.freq(`${activeMaqam.tonic}${playbackOctave}`) ?? 440;
+        onPlayingFrequency?.(tonicFrequency * 2 ** (activeMaqam.intervals[i] / 12));
+      },
       () => {
         setIsPlaying(false);
         setPlayingStep(null);
+        onPlayingFrequency?.(null);
       },
     );
   };
@@ -124,6 +133,7 @@ export function MaqamPanel<Mode extends string>({
     stopRef.current?.();
     setIsPlaying(false);
     setPlayingStep(null);
+    onPlayingFrequency?.(null);
   };
 
   return (

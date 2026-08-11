@@ -56,6 +56,20 @@ export function buildStrings(tuning: TuningPreset): ViolinString[] {
 
 export type Resolution = "semitone" | "quarter-tone";
 
+export type ViolinPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+/** Start offsets model the chart's first through eighth position windows. */
+export const VIOLIN_POSITIONS: { id: ViolinPosition; label: string; start: number }[] = [
+  { id: 1, label: "1st", start: 0 },
+  { id: 2, label: "2nd", start: 3 },
+  { id: 3, label: "3rd", start: 5 },
+  { id: 4, label: "4th", start: 7 },
+  { id: 5, label: "5th", start: 8 },
+  { id: 6, label: "6th", start: 10 },
+  { id: 7, label: "7th", start: 12 },
+  { id: 8, label: "8th", start: 14 },
+];
+
 export const SEMITONE_POSITIONS = 12; // steps shown per octave, semitone mode
 export const QUARTER_TONE_POSITIONS = 24; // steps shown per octave, quarter-tone mode
 
