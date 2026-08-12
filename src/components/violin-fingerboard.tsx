@@ -14,6 +14,18 @@ import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { cn } from "@/lib/utils";
 import { isNoteInWesternScale, type WesternScalePreset } from "@/lib/western-scale-theory";
 
+/**
+ * In a position, the four fingers fall 2, 4, 5, and 7 semitones above the
+ * open string. These coloured guides emulate the tapes commonly placed on a
+ * beginner's violin fingerboard.
+ */
+const FINGER_TAPES = [
+  { offset: 2, color: "#38bdf8", label: "First finger" },
+  { offset: 4, color: "#facc15", label: "Second finger" },
+  { offset: 5, color: "#fb7185", label: "Third finger" },
+  { offset: 7, color: "#a78bfa", label: "Fourth finger (pinky)" },
+] as const;
+
 interface ViolinFingerboardProps {
   mode: PlayMode;
   strings: ViolinString[];
@@ -108,6 +120,7 @@ export function ViolinFingerboard({
                   const isActive = activeCell === cellKey;
                   const isOpen = step === 0;
                   const isQuarterTone = !Number.isInteger(step);
+                  const tape = FINGER_TAPES.find(({ offset }) => step === positionStart + offset);
                   const inMaqam = activeMaqam
                     ? isNoteInMaqam(str.openNote, step, activeMaqam)
                     : false;
@@ -139,15 +152,27 @@ export function ViolinFingerboard({
                       )}
                       style={{ outlineColor: str.varnish }}
                     >
+                      {tape && (
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "pointer-events-none absolute z-0 opacity-85",
+                            orientation === "horizontal"
+                              ? "inset-y-0 left-1/2 w-3/5 -translate-x-1/2"
+                              : "inset-x-0 top-1/2 h-3/5 -translate-y-1/2",
+                          )}
+                          style={{ backgroundColor: tape.color }}
+                        />
+                      )}
                       <span
                         className={cn(
-                          "font-medium",
+                          "relative z-10 font-medium",
                           inMaqam || inScale ? "text-amber-300" : "text-violin-text"
                         )}
                       >
                         {noteName}
                       </span>
-                      <span className="text-[10px] text-violin-muted">{step}</span>
+                      <span className="relative z-10 text-[10px] text-violin-muted">{step}</span>
                       {(inMaqam || inScale) && (
                         <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-300" />
                       )}
