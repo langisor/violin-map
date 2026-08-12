@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import {
   stepsFor,
   labelAtStep,
@@ -25,6 +25,10 @@ const FINGER_TAPES = [
   { offset: 5, color: "#fb7185", label: "Third finger" },
   { offset: 7, color: "#a78bfa", label: "Fourth finger (pinky)" },
 ] as const;
+
+function tapeAtStep(step: number, positionStart: number) {
+  return FINGER_TAPES.find(({ offset }) => step === positionStart + offset);
+}
 
 interface ViolinFingerboardProps {
   mode: PlayMode;
@@ -79,48 +83,75 @@ export function ViolinFingerboard({
         className={cn(
           orientation === "horizontal" &&
             (resolution === "quarter-tone" ? "min-w-340" : "min-w-190"),
-          orientation === "vertical" && "mx-auto flex w-fit items-start justify-center gap-2 sm:gap-3",
+          orientation === "vertical" && "mx-auto w-fit",
         )}
       >
-        {strings
-          .slice()
-          .reverse()
-          .map((str, rowIndex) => (
-            <div
-              key={str.id}
-              className={cn(
-                "mb-2 flex gap-2 sm:gap-3",
-                orientation === "vertical" ? "mb-0 w-14 flex-col items-center sm:w-16" : "items-center",
-              )}
-            >
+        <div
+          className={cn(
+            "relative grid gap-x-1 gap-y-2 sm:gap-x-1.5 sm:gap-y-3",
+            orientation === "horizontal" ? "grid-cols-[2rem_repeat(var(--step-count),minmax(0,1fr))] sm:grid-cols-[2.5rem_repeat(var(--step-count),minmax(0,1fr))]" : "grid-cols-[repeat(var(--string-count),3.5rem)] grid-rows-[2.5rem_repeat(var(--step-count),3rem)] sm:grid-cols-[repeat(var(--string-count),4rem)]",
+          )}
+          style={{
+            "--step-count": steps.length,
+            "--string-count": strings.length,
+          } as CSSProperties}
+        >
+          {FINGER_TAPES.map((tape) => {
+            const tapeStepIndex = steps.findIndex((step) => step === positionStart + tape.offset);
+            if (tapeStepIndex < 0) return null;
+
+            return (
+              <span
+                key={tape.label}
+                aria-label={`${tape.label} tape`}
+                className={cn(
+                  "pointer-events-none z-10 self-stretch justify-self-center rounded-sm opacity-80 shadow-sm",
+                  orientation === "horizontal" ? "my-0.5 w-3/5" : "mx-0.5 h-3/5 self-center justify-self-stretch",
+                )}
+                style={{
+                  backgroundColor: tape.color,
+                  gridColumn: orientation === "horizontal" ? tapeStepIndex + 2 : "1 / -1",
+                  gridRow: orientation === "horizontal" ? "1 / -1" : tapeStepIndex + 2,
+                }}
+              />
+            );
+          })}
+          {strings
+            .slice()
+            .reverse()
+            .map((str, rowIndex) => (
               <div
-                className="flex w-8 shrink-0 flex-col items-center text-sm font-semibold sm:w-10"
-                style={{ color: str.varnish }}
+                key={str.id}
+                className="z-20 flex shrink-0 flex-col items-center justify-center text-sm font-semibold"
+                style={{
+                  color: str.varnish,
+                  gridColumn: orientation === "horizontal" ? 1 : rowIndex + 1,
+                  gridRow: orientation === "horizontal" ? rowIndex + 1 : 1,
+                }}
               >
                 <span>{str.label}</span>
                 <span
                   className="mt-1 w-6 rounded-full"
                   style={{
                     backgroundColor: str.varnish,
-                    // thicker line for lower strings, like real string gauge
+                    // Thicker line for lower strings, like real string gauge.
                     height: 2 + rowIndex * 0.8,
                   }}
                 />
               </div>
-              <div
-                className={cn(
-                  "flex gap-1",
-                  orientation === "horizontal" ? "flex-1" : "w-full flex-col",
-                )}
-              >
-                {steps.map((step) => {
+            ))}
+          {strings
+            .slice()
+            .reverse()
+            .flatMap((str, rowIndex) =>
+              steps.map((step, stepIndex) => {
                   const noteName = labelAtStep(str.openNote, step, notation);
                   const frequency = frequencyAtStep(str.openNote, step);
                   const cellKey = `${str.id}-${step}`;
                   const isActive = activeCell === cellKey;
                   const isOpen = step === 0;
                   const isQuarterTone = !Number.isInteger(step);
-                  const tape = FINGER_TAPES.find(({ offset }) => step === positionStart + offset);
+                  const tape = tapeAtStep(step, positionStart);
                   const inMaqam = activeMaqam
                     ? isNoteInMaqam(str.openNote, step, activeMaqam)
                     : false;
@@ -139,8 +170,8 @@ export function ViolinFingerboard({
                       }}
                       onTouchEnd={() => handleRelease(str.id)}
                       className={cn(
-                        "relative flex h-14 flex-1 flex-col items-center justify-center rounded-md border text-xs transition-colors select-none focus-visible:outline focus-visible:outline-offset-2",
-                        orientation === "vertical" && "h-12 w-full shrink-0",
+                        "relative z-20 flex h-14 min-w-0 flex-col items-center justify-center rounded-md border text-xs transition-colors select-none focus-visible:outline focus-visible:outline-offset-2",
+                        orientation === "vertical" && "h-12",
                         isOpen
                           ? "border-violin-border bg-violin-cell-open"
                           : "border-violin-border bg-violin-cell",
@@ -148,22 +179,16 @@ export function ViolinFingerboard({
                         (inMaqam || inScale) &&
                           "border-amber-500/80 bg-amber-950/40 font-semibold ring-1 ring-amber-500/50",
                         isActive && "border-violin-e bg-violin-cell-active",
-                        isPlaying && "z-10 border-cyan-300 bg-cyan-400/30 text-cyan-50 ring-2 ring-cyan-300 shadow-lg shadow-cyan-400/30"
+                        isPlaying && "z-10 border-cyan-300 bg-cyan-400/30 text-cyan-50 ring-2 ring-cyan-300 shadow-lg shadow-cyan-400/30",
+                        tape && !isActive && !isPlaying && "bg-transparent",
                       )}
-                      style={{ outlineColor: str.varnish }}
+                      style={{
+                        outlineColor: str.varnish,
+                        gridColumn: orientation === "horizontal" ? stepIndex + 2 : rowIndex + 1,
+                        gridRow: orientation === "horizontal" ? rowIndex + 1 : stepIndex + 2,
+                      }}
                     >
-                      {tape && (
-                        <span
-                          aria-hidden="true"
-                          className={cn(
-                            "pointer-events-none absolute z-0 opacity-85",
-                            orientation === "horizontal"
-                              ? "inset-y-0 left-1/2 w-3/5 -translate-x-1/2"
-                              : "inset-x-0 top-1/2 h-3/5 -translate-y-1/2",
-                          )}
-                          style={{ backgroundColor: tape.color }}
-                        />
-                      )}
+                      {tape && <span className="sr-only">{tape.label} tape</span>}
                       <span
                         className={cn(
                           "relative z-10 font-medium",
@@ -178,10 +203,17 @@ export function ViolinFingerboard({
                       )}
                     </button>
                   );
-                })}
-              </div>
-            </div>
-          ))}
+                }),
+            )}
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-violin-muted">
+        {FINGER_TAPES.map((tape) => (
+          <span key={tape.label} className="inline-flex items-center gap-1.5">
+            <span aria-hidden="true" className="size-2.5 rounded-sm" style={{ backgroundColor: tape.color }} />
+            {tape.label}
+          </span>
+        ))}
       </div>
       <p className="mt-3 text-center text-xs text-violin-muted">
         Hold a cell to sustain in bow mode, or tap to pluck in pizzicato mode.
