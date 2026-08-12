@@ -20,10 +20,10 @@ import { isNoteInWesternScale, type WesternScalePreset } from "@/lib/western-sca
  * beginner's violin fingerboard.
  */
 const FINGER_TAPES = [
-  { offset: 2, color: "#38bdf8", label: "First finger" },
-  { offset: 4, color: "#facc15", label: "Second finger" },
-  { offset: 5, color: "#fb7185", label: "Third finger" },
-  { offset: 7, color: "#a78bfa", label: "Fourth finger (pinky)" },
+  { offset: 2, color: "#342ed6", label: "First finger" },
+  { offset: 4, color: "#342ed6", label: "Second finger" },
+  { offset: 5, color: "#342ed6", label: "Third finger" },
+  { offset: 7, color: "#342ed6", label: "Fourth finger (pinky)" },
 ] as const;
 
 interface ViolinFingerboardProps {
