@@ -70,7 +70,10 @@ export function RecordNotesDialog({ open, onOpenChange, notes, onLoad, engine, m
         void engine.noteOn(RECORDING_VOICE_ID, note.frequency, "pluck");
       }, index * NOTE_DURATION_MS));
     });
-    timersRef.current.push(setTimeout(() => setPlaying(false), notes.length * NOTE_DURATION_MS + 120));
+    timersRef.current.push(setTimeout(() => {
+      engine.noteOff(RECORDING_VOICE_ID, mode);
+      setPlaying(false);
+    }, notes.length * NOTE_DURATION_MS));
   };
 
   const saveRecording = () => {

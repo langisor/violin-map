@@ -36,6 +36,7 @@ export class SamplerEngine implements StatusReportingSampler {
  private sampler: Tone.Sampler | null = null;
  private started = false;
  private heldNotes: Map<string, number> = new Map(); // voiceId -> frequency
+ private voiceGenerations: Map<string, number> = new Map();
  private listeners: Set<(status: SamplerStatus) => void> = new Set();
 
  constructor(config: SamplerConfig) {
@@ -49,7 +50,9 @@ export class SamplerEngine implements StatusReportingSampler {
   this.sampler = new Tone.Sampler({
    urls: config.urls,
    baseUrl: config.baseUrl,
-   release: config.release ?? 0.6,
+   // A short release keeps sequential scale/recording playback articulate
+   // while still avoiding clicks when a note is stopped or replaced.
+   release: config.release ?? 0.12,
    onload: () => this.setStatus("ready"),
    onerror: (err) => {
     console.warn("[SamplerEngine] failed to load samples:", err);
@@ -79,13 +82,29 @@ export class SamplerEngine implements StatusReportingSampler {
 
  async noteOn(voiceId: string, frequency: number, _mode?: string) {
   if (this.status !== "ready" || !this.sampler) return;
+
+  // A sequencer reuses one voice for every step. Release that voice before
+  // starting its next sample so older samples cannot continue underneath it.
+  const generation = (this.voiceGenerations.get(voiceId) ?? 0) + 1;
+  this.voiceGenerations.set(voiceId, generation);
+  const previousFrequency = this.heldNotes.get(voiceId);
+  if (previousFrequency !== undefined) {
+   this.sampler.triggerRelease(previousFrequency);
+   this.heldNotes.delete(voiceId);
+  }
+
   await this.ensureStarted();
+  // Tone.start() is asynchronous. Ignore an attack made obsolete by a newer
+  // step (or by stopping playback) while the audio context was starting.
+  if (this.voiceGenerations.get(voiceId) !== generation) return;
+
   this.heldNotes.set(voiceId, frequency);
   this.sampler.triggerAttack(frequency);
  }
 
  noteOff(voiceId: string, _mode?: string) {
   if (this.status !== "ready" || !this.sampler) return;
+  this.voiceGenerations.set(voiceId, (this.voiceGenerations.get(voiceId) ?? 0) + 1);
   const frequency = this.heldNotes.get(voiceId);
   if (frequency === undefined) return;
   this.sampler.triggerRelease(frequency);
@@ -95,6 +114,7 @@ export class SamplerEngine implements StatusReportingSampler {
  dispose() {
   this.sampler?.dispose();
   this.heldNotes.clear();
+  this.voiceGenerations.clear();
   this.listeners.clear();
  }
 }
@@ -218,6 +238,15 @@ export class MultiSamplerEngine implements StatusReportingSampler {
 
  async noteOn(voiceId: string, frequency: number, mode?: string) {
   if (this.status !== "ready") return;
+
+  // A scale can cross regions as its pitch rises. The same logical voice must
+  // only live in one region, otherwise each previous region keeps ringing.
+  const previousRegionId = this.heldRegions.get(voiceId);
+  if (previousRegionId) {
+   this.regions.get(previousRegionId)?.engine.noteOff(voiceId, mode);
+   this.heldRegions.delete(voiceId);
+  }
+
   const regionId = this.pickRegionId(voiceId, frequency);
   if (!regionId) return;
   const region = this.regions.get(regionId);
