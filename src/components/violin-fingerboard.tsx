@@ -13,6 +13,7 @@ import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
 import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { cn } from "@/lib/utils";
 import { isNoteInWesternScale, type WesternScalePreset } from "@/lib/western-scale-theory";
+import type { RecordedNote } from "@/lib/note-recording";
 
 /**
  * In a position, the four fingers fall 2, 4, 5, and 7 semitones above the
@@ -38,6 +39,9 @@ interface ViolinFingerboardProps {
   playingFrequency?: number | null;
   /** Defaults to the built-in synth engine; pass the sampler engine to play recorded samples instead. */
   engine?: SequencableAudioEngine<PlayMode>;
+  recordNotes?: boolean;
+  recordedNotes?: RecordedNote[];
+  onRecordedNotesChange?: (notes: RecordedNote[]) => void;
 }
 
 export function ViolinFingerboard({
@@ -51,17 +55,26 @@ export function ViolinFingerboard({
   notation = "sharps",
   playingFrequency = null,
   engine = violinAudioEngine,
+  recordNotes = false,
+  recordedNotes = [],
+  onRecordedNotesChange,
 }: ViolinFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
   const positionStart = useMemo(() => ({ 1: 0, 2: 3, 3: 5, 4: 7, 5: 8, 6: 10, 7: 12, 8: 14 })[position], [position]);
   const steps = useMemo(() => stepsFor(resolution).map((step) => step + positionStart), [resolution, positionStart]);
 
   const handlePress = useCallback(
-    (stringId: string, step: number, frequency: number) => {
+    (stringId: string, step: number, frequency: number, label: string) => {
+      if (recordNotes) {
+        const id = `${stringId}-${step}`;
+        const exists = recordedNotes.some((note) => note.id === id);
+        onRecordedNotesChange?.(exists ? recordedNotes.filter((note) => note.id !== id) : [...recordedNotes, { id, label, stringId, step, frequency }]);
+        return;
+      }
       setActiveCell(`${stringId}-${step}`);
       void engine.noteOn(stringId, frequency, mode);
     },
-    [mode, engine]
+    [mode, engine, onRecordedNotesChange, recordNotes, recordedNotes]
   );
 
   const handleRelease = useCallback(
@@ -126,16 +139,17 @@ export function ViolinFingerboard({
                     : false;
                   const inScale = activeScale ? isNoteInWesternScale(str.openNote, step, activeScale) : false;
                   const isPlaying = playingFrequency !== null && Math.abs(1200 * Math.log2(frequency / playingFrequency)) < 20;
+                  const isRecorded = recordedNotes.some((note) => note.id === cellKey);
                   return (
                     <button
                       key={cellKey}
                       aria-label={`${str.label} string, position ${step}, note ${noteName}`}
-                      onMouseDown={() => handlePress(str.id, step, frequency)}
+                      onMouseDown={() => handlePress(str.id, step, frequency, noteName)}
                       onMouseUp={() => handleRelease(str.id)}
                       onMouseLeave={() => isActive && handleRelease(str.id)}
                       onTouchStart={(e) => {
                         e.preventDefault();
-                        handlePress(str.id, step, frequency);
+                        handlePress(str.id, step, frequency, noteName);
                       }}
                       onTouchEnd={() => handleRelease(str.id)}
                       className={cn(
@@ -148,6 +162,7 @@ export function ViolinFingerboard({
                         (inMaqam || inScale) &&
                           "border-amber-500/80 bg-amber-950/40 font-semibold ring-1 ring-amber-500/50",
                         isActive && "border-violin-e bg-violin-cell-active",
+                        isRecorded && "border-emerald-300 bg-emerald-400/20 text-emerald-50 ring-2 ring-emerald-300",
                         isPlaying && "z-10 border-cyan-300 bg-cyan-400/30 text-cyan-50 ring-2 ring-cyan-300 shadow-lg shadow-cyan-400/30"
                       )}
                       style={{ outlineColor: str.varnish }}
@@ -184,7 +199,7 @@ export function ViolinFingerboard({
           ))}
       </div>
       <p className="mt-3 text-center text-xs text-violin-muted">
-        Hold a cell to sustain in bow mode, or tap to pluck in pizzicato mode.
+        {recordNotes ? "Tap notes to add or remove them from the recording." : "Hold a cell to sustain in bow mode, or tap to pluck in pizzicato mode."}
         {resolution === "quarter-tone"
           ? " Dashed cells are quarter tones — the note name below with a trailing \"+\" means raised a quarter tone."
           : " The small number is the semitone position above the open string."}

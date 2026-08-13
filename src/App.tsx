@@ -24,6 +24,8 @@ import {
   type MaqamPreset,
 } from "@/lib/maqam-theory";
 import { Button } from "@/components/ui/button";
+import { RecordNotesDialog } from "@/components/record-notes-dialog";
+import type { RecordedNote } from "@/lib/note-recording";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VIOLIN_POSITIONS, type ViolinPosition } from "@/lib/violin-theory";
@@ -54,6 +56,9 @@ export default function App() {
   const [orientation, setOrientation] = useState<"horizontal" | "vertical">("horizontal");
   const [position, setPosition] = useState<ViolinPosition>(1);
   const [playingFrequency, setPlayingFrequency] = useState<number | null>(null);
+  const [recordNotes, setRecordNotes] = useState(false);
+  const [recordedNotes, setRecordedNotes] = useState<RecordedNote[]>([]);
+  const [recordingDialogOpen, setRecordingDialogOpen] = useState(false);
 
   const tuning = useMemo(
     () => TUNINGS.find((t) => t.id === tuningId) ?? TUNINGS[0],
@@ -148,6 +153,9 @@ export default function App() {
                 >
                   Pizzicato
                 </Button>
+                <Button size="sm" variant={recordNotes ? "default" : "outline"} onClick={() => setRecordNotes((value) => !value)}>Record notes</Button>
+                {recordNotes && <Button size="sm" onClick={() => setRecordingDialogOpen(true)} disabled={!recordedNotes.length}>Analyze ({recordedNotes.length})</Button>}
+                {recordNotes && recordedNotes.length > 0 && <Button size="sm" variant="ghost" onClick={() => setRecordedNotes([])}>Clear</Button>}
               </div>
 
               <SoundSourceToggle
@@ -267,6 +275,18 @@ export default function App() {
             notation={notation}
             playingFrequency={playingFrequency}
             engine={activeEngine}
+            recordNotes={recordNotes}
+            recordedNotes={recordedNotes}
+            onRecordedNotesChange={setRecordedNotes}
+          />
+
+          <RecordNotesDialog
+            open={recordingDialogOpen}
+            onOpenChange={setRecordingDialogOpen}
+            notes={recordedNotes}
+            onLoad={(notes) => { setRecordedNotes(notes); setRecordNotes(true); }}
+            engine={activeEngine}
+            mode={mode}
           />
 
           <div className="flex flex-wrap items-center gap-2">
