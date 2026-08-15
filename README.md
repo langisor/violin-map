@@ -1,6 +1,6 @@
-# Interactive Violin
+# Interactive String Lab
 
-A browser-based violin built with React, TypeScript, Tone.js, and tonal — an interactive fingerboard with bowed and pizzicato playback, swappable tunings, and a live microphone pitch detector.
+A browser-based violin and oud built with React, TypeScript, Tone.js, and tonal — interactive fingerboards with bowed and pizzicato playback, swappable tunings, a live microphone pitch detector, maqam theory support, and a full-featured metronome with Arabic iqa'at.
 
 ## Features
 
@@ -23,6 +23,14 @@ A browser-based violin built with React, TypeScript, Tone.js, and tonal — an i
   - MIDI number
   - Frequency in Hz
   - Cents deviation from the nearest resolved pitch (±50¢ window in Semitone mode, ±25¢ in Quarter-tone mode), plus a simple in-tune gauge
+- **Full-featured metronome** — a dedicated metronome view with:
+  - **Western time signatures** — common meters (2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8, 12/8) with adjustable subdivisions (quarter, eighth, triplet, sixteenth notes)
+  - **Arabic iqa'at (rhythmic cycles)** — 10 traditional Middle Eastern rhythms (Maqsum, Baladi, Saidi, Malfuf, Ayyub, Wahda, Masmoudi Kebir, Chiftetelli, Karsilama, Samai Thaqil) with authentic Dum (low) and Tak (high) sounds
+  - **Custom pattern editor** — create your own rhythms with a clickable beat grid, supporting both Western clicks and Arabic percussion voices
+  - **Pattern library** — save, load, rename, and delete custom patterns to localStorage
+  - **Transport controls** — BPM slider (30-260), tap tempo, fine adjustment buttons (±5, ±10), and volume control
+  - **Practice timer** — set session goals with preset durations (5-60 minutes) or custom values, track elapsed time, auto-log completed sessions, and view practice history with daily/weekly totals
+  - **Live beat visualization** — real-time highlighting of the current step in the pattern grid
 
 ## Tech stack
 
@@ -30,30 +38,32 @@ A browser-based violin built with React, TypeScript, Tone.js, and tonal — an i
 |---|---|
 | UI framework | React + TypeScript |
 | Build tool | Vite |
+| Package manager | pnpm |
 | Styling | Tailwind CSS v4 (via `@tailwindcss/vite`) |
-| Component primitives | shadcn/ui-style `Button`, `Card`, `Tabs` (`@radix-ui/react-tabs`), `Tooltip` (`@radix-ui/react-tooltip`) — hand-written, styled to the app's design tokens |
+| Component primitives | shadcn/ui-style `Button`, `Card`, `Tabs` (`@radix-ui/react-tabs`), `Tooltip` (`@radix-ui/react-tooltip`), `Dialog` (`@base-ui/react/dialog`), `Slider`, `Switch`, `Progress`, `Badge`, `Label`, `Input`, `Separator` — hand-written, styled to the app's design tokens |
 | Music theory (note names, transposition, frequency ↔ note conversion) | [tonal](https://github.com/tonaljs/tonal) |
 | Audio synthesis | [Tone.js](https://tonejs.github.io/) |
 | Pitch detection | Custom autocorrelation (ACF2+) over the Web Audio API |
+| Metronome audio | Web Audio API (sample-accurate scheduling with look-ahead) |
 
 ## Getting started
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Then open the printed local URL in a browser. For **pitch detection**, the browser will prompt for microphone access — this requires a secure context (`localhost` works; a deployed build needs `https`).
 
 ```bash
-npm run build   # type-checks and produces a production build in dist/
+pnpm run build   # type-checks and produces a production build in dist/
 ```
 
 ## Project structure
 
 ```
 src/
-├── App.tsx                        # Top-level layout: Play/Pitch-detect tabs, mode + tuning controls
+├── App.tsx                        # Top-level layout: Play/Pitch-detect/Metronome tabs, mode + tuning controls
 ├── index.css                      # Tailwind entry + violin color tokens (--color-violin-*)
 ├── components/
 │   ├── violin_fingerboard.tsx     # The interactive string/position grid
@@ -62,19 +72,48 @@ src/
 │   ├── oud-page.tsx               # Oud tab: tuning/resolution controls + fingerboard
 │   ├── oud-fingerboard.tsx        # Oud course/position grid, maqam-aware
 │   ├── maqam-panel.tsx            # Shared: maqam selector, ajnas breakdown, Play Maqam button
+│   ├── metronome/                 # Metronome components
+│   │   ├── metronome.tsx          # Main metronome component with state management
+│   │   ├── beat-grid.tsx          # Visual grid showing pattern steps with current step highlight
+│   │   ├── transport-controls.tsx # BPM slider, tap tempo, play/pause, volume
+│   │   ├── pattern-library.tsx    # Tabbed interface for Western/Arabic/Custom patterns
+│   │   ├── custom-pattern-editor.tsx # Pattern editor with beat count, subdivision, voice mode
+│   │   ├── practice-timer.tsx     # Session timer with goals, logging, and history
+│   │   ├── save_pattern_dialog.tsx # Dialog for saving custom patterns
+│   │   └── saved_patterns_list.tsx # List of saved patterns with load/rename/delete
 │   └── ui/
 │       ├── button.tsx             # shadcn-style Button primitive
 │       ├── card.tsx               # shadcn-style Card/CardHeader/CardContent primitives
 │       ├── tabs.tsx                # shadcn-style Tabs, wrapping @radix-ui/react-tabs
-│       └── tooltip.tsx            # shadcn-style Tooltip, wrapping @radix-ui/react-tooltip
+│       ├── tooltip.tsx            # shadcn-style Tooltip, wrapping @radix-ui/react-tooltip
+│       ├── dialog.tsx             # Dialog component for modals
+│       ├── slider.tsx             # Slider component for BPM/volume controls
+│       ├── switch.tsx             # Toggle switch component
+│       ├── progress.tsx           # Progress bar component
+│       ├── badge.tsx              # Badge component for labels
+│       ├── label.tsx              # Label component for form fields
+│       ├── input.tsx              # Input component for text fields
+│       └── separator.tsx         # Separator component
 ├── hooks/
-│   └── use_pitch_detector.ts      # Mic capture + detection loop (getUserMedia, AnalyserNode, rAF)
+│   ├── use_pitch_detector.ts      # Mic capture + detection loop (getUserMedia, AnalyserNode, rAF)
+│   ├── use_sampler_status.ts      # Tracks sampler loading state
+│   └── metronome/                 # Metronome hooks
+│       ├── use-metronome.ts       # Web Audio scheduler for beat playback
+│       ├── use-practice-timer.ts  # Wall-clock practice timer with goal tracking
+│       ├── use-practice-sessions.ts # localStorage persistence for practice sessions
+│       └── use_saved_patterns.ts  # localStorage persistence for custom patterns
 └── lib/
     ├── violin_theory.ts           # Tunings, note/frequency helpers, frequency → note analysis
     ├── violin_audio.ts            # Tone.js synths (bow + pluck) per string
     ├── maqam_theory.ts            # Maqamat + ajnas presets, isNoteInMaqam(), shared by Violin and Oud
     ├── maqam_playback.ts          # playMaqamSequence() — sequences a maqam through any instrument's audio engine
-    └── pitch_detection.ts         # Autocorrelation fundamental-frequency estimator
+    ├── pitch_detection.ts         # Autocorrelation fundamental-frequency estimator
+    ├── metronome/                 # Metronome library (framework-free)
+    │   ├── metronome-patterns.ts  # Pattern data structures, Western/Arabic presets, voice types
+    │   ├── saved_patterns.ts      # localStorage persistence for custom patterns
+    │   └── practice-sessions.ts   # localStorage persistence for practice sessions
+    ├── instrument-samplers.ts     # Sampler configuration per string/course
+    └── sampler-audio.ts           # Multi-sampler engine routing and loading
 ```
 
 ## How it works
@@ -123,6 +162,64 @@ The pitch detector has the same toggle: in Quarter-tone mode, `analyzeFrequency`
 
 **Limitations:** this is a single-voice pitch tracker — it estimates one fundamental frequency per frame, so it isn't reliable on double-stops or chords, and very quiet or noisy input is discarded rather than guessed at.
 
+### Metronome
+
+The metronome provides three pattern libraries:
+
+**Western time signatures** — Build patterns from meter presets (2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8, 12/8) with:
+- Adjustable subdivisions (quarter notes, eighth notes, triplets, sixteenth notes)
+- Optional accent on the first beat
+- Click sounds with pitch differentiation (accent > beat > sub)
+
+**Arabic iqa'at** — Traditional Middle Eastern rhythmic cycles with authentic percussion:
+- 10 patterns: Maqsum, Baladi, Saidi, Malfuf, Ayyub, Wahda, Masmoudi Kebir, Chiftetelli, Karsilama, Samai Thaqil
+- Dum (low resonant) and Tak (high sharp) voices synthesized with Web Audio
+- Visual grouping and meter display (e.g., 4/4, 9/8, 10/8)
+- Arabic script labels (e.g., مقسوم for Maqsum)
+
+**Custom patterns** — Create your own rhythms:
+- Adjustable beat count (1-16 beats) and subdivision
+- Two voice modes: Western clicks (rest/beat/accent/sub) or Arabic percussion (rest/dum/tak)
+- Clickable beat grid to toggle steps through voice cycles
+- Save/load custom patterns to localStorage with BPM
+- Pattern library with rename and delete functionality
+
+**Practice features**:
+- Session timer with preset goals (5-60 minutes) or custom duration
+- Auto-log completed sessions with pattern name and BPM
+- Practice history showing recent sessions with daily/weekly totals
+- Auto-stop option when goal is reached
+- Completion chime using Web Audio synthesis
+
+**Transport controls**:
+- BPM slider (30-260) with tap tempo
+- Fine adjustment buttons (±5, ±10 BPM)
+- Play/pause with animated pulse indicator
+- Volume control (0-100%)
+- Tempo name display (Largo, Adagio, Andante, Moderato, Allegro, Presto, Prestissimo)
+
+### Metronome implementation
+
+The metronome uses a sample-accurate Web Audio scheduler with the classic look-ahead technique:
+
+- **Scheduling** — `useMetronome` schedules audio events 120ms ahead of the current time using `AudioContext.currentTime`, ensuring precise timing even if the main thread is busy
+- **Voice synthesis** — Each voice (accent, beat, sub, dum, tak) is synthesized in real-time using Web Audio oscillators and filters:
+  - Western clicks use square wave oscillators at different frequencies (1600 Hz for accent, 1000 Hz for beat, 760 Hz for sub)
+  - Arabic Dum uses a sine wave with frequency drop from 170 Hz to 90 Hz for a resonant low hit
+  - Arabic Tak combines filtered noise burst (bandpass at 2600 Hz) with a high triangle wave (880 Hz) for a sharp bright hit
+- **Step tracking** — A `requestAnimationFrame` loop updates the UI to highlight the current step based on scheduled event times
+- **Practice timer** — Uses `performance.now()` deltas for wall-clock timing that survives pause/resume cycles without drift
+- **Persistence** — Custom patterns and practice sessions are saved to localStorage using framework-free library functions in `src/lib/metronome/`
+
+- **Scheduling** — `useMetronome` schedules audio events 120ms ahead of the current time using `AudioContext.currentTime`, ensuring precise timing even if the main thread is busy
+- **Voice synthesis** — Each voice (accent, beat, sub, dum, tak) is synthesized in real-time using Web Audio oscillators and filters:
+  - Western clicks use square wave oscillators at different frequencies (1600 Hz for accent, 1000 Hz for beat, 760 Hz for sub)
+  - Arabic Dum uses a sine wave with frequency drop from 170 Hz to 90 Hz for a resonant low hit
+  - Arabic Tak combines filtered noise burst (bandpass at 2600 Hz) with a high triangle wave (880 Hz) for a sharp bright hit
+- **Step tracking** — A `requestAnimationFrame` loop updates the UI to highlight the current step based on scheduled event times
+- **Practice timer** — Uses `performance.now()` deltas for wall-clock timing that survives pause/resume cycles without drift
+- **Persistence** — Custom patterns and practice sessions are saved to localStorage using framework-free library functions in `src/lib/metronome/`
+
 ### Adding your own samples
 
 Each string (Violin) or course (Oud) gets its own small `Tone.Sampler`, loaded from its own folder, instead of one sampler pitch-shifted across the whole instrument — a real string's recorded timbre only sounds right pitch-shifted a few semitones in either direction, not across the whole fingerboard. Folders live under `public/samples/`:
@@ -147,6 +244,7 @@ Record (or export from Audacity) each note as an mp3 named exactly as listed in 
 
 ## Browser requirements
 
-- Web Audio API (all modern browsers)
+- Web Audio API (all modern browsers) — required for audio synthesis, metronome, and pitch detection
 - Microphone access for pitch detection (requires `localhost` or `https`)
+- LocalStorage for saving custom metronome patterns and practice sessions
 - No IE11 support
