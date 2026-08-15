@@ -68,9 +68,10 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { BookOpen, ListMusic, Settings2 } from "lucide-react";
+import { Metronome } from "@/components/metronome/metronome";
 
 type Instrument = "violin" | "oud";
-type View = "play" | "pitch";
+type View = "play" | "pitch" | "metronome";
 type ScaleSystem = "eastern" | "western";
 
 export default function App() {
@@ -179,15 +180,18 @@ export default function App() {
 
       {/* View Selector */}
       <Tabs value={view} onValueChange={(v) => setView(v as View)}>
-        <TabsList className="grid w-full grid-cols-2 sm:inline-flex sm:w-auto">
+        <TabsList className="grid w-full grid-cols-3 sm:inline-flex sm:w-auto">
           <TabsTrigger value="play">
             {instrument === "violin" ? "Violin Fingerboard" : "Oud Fingerboard"}
           </TabsTrigger>
           <TabsTrigger value="pitch">Pitch Detection</TabsTrigger>
+          <TabsTrigger value="metronome">Metronome</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {view === "pitch" ? (
+      {view === "metronome" ? (
+        <Metronome />
+      ) : view === "pitch" ? (
         <PitchTuner />
       ) : instrument === "oud" ? (
         <OudPage />
