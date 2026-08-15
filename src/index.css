@@ -2,14 +2,16 @@
 
 @theme {
   /* Dark theme inspired by Guitar Tool Hub */
-  --color-violin-bg: #0a0a0a;
+  --color-violin-bg: #372602;
   --color-violin-panel: #111111;
+  /* --color-violin-panel: #340d5c; */
+  
   --color-violin-panel-2: #1a1a1a;
-  --color-violin-border: #2a2a2a;
+  --color-violin-border:#bea61e;
   --color-violin-cell: #151515;
   --color-violin-cell-open: #1f1f1f;
   --color-violin-cell-active: #252525;
-  --color-violin-text: #ffffff;
+  --color-violin-text: #7bd6a5;
   --color-violin-muted: #a0a0a0;
   --color-violin-g: #3b82f6; /* Blue accent */
   --color-violin-d: #60a5fa; /* Lighter blue */

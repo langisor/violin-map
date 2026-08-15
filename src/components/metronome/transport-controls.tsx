@@ -67,8 +67,8 @@ export function TransportControls({
         </div>
       </div>
 
-      {/* BPM slider with nudge buttons */}
-      <div className="flex w-full items-center gap-3">
+      {/* BPM slider with nudge buttons */} 
+      <div className="flex w-full items-center gap-3 border border-amber-400 rounded-lg">
         <Button
           className="bg-muted text-muted-foreground hover:bg-muted/90 shrink-0 rounded-full"
           size="sm"
@@ -84,7 +84,7 @@ export function TransportControls({
           step={1}
           onValueChange={(value) => onBpmChange(Array.isArray(value) ? value[0] : value)}
           aria-label="Tempo in beats per minute"
-          className="flex-1"
+          className="flex-1 border-2"
         />
         <Button
           className="bg-muted text-muted-foreground hover:bg-muted/90 shrink-0 rounded-full"
@@ -100,7 +100,7 @@ export function TransportControls({
       {/* Fine adjust */}
       <div className="flex items-center gap-2">
         {[-10, -5, 5, 10].map((d) => (
-          <Button key={d} className="bg-muted text-muted-foreground hover:bg-muted/90" size="sm" onClick={() => nudge(d)}>
+          <Button key={d} className="text-muted-foreground text-white hover:bg-muted/90" size="sm" onClick={() => nudge(d)}>
             {d > 0 ? `+${d}` : d}
           </Button>
         ))}
