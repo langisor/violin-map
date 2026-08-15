@@ -35,7 +35,7 @@ A browser-based violin and oud built with React, TypeScript, Tone.js, and tonal 
 ## Tech stack
 
 | Purpose | Library |
-|---|---|
+| --- | --- |
 | UI framework | React + TypeScript |
 | Build tool | Vite |
 | Package manager | pnpm |
@@ -61,7 +61,7 @@ pnpm run build   # type-checks and produces a production build in dist/
 
 ## Project structure
 
-```
+```bash
 src/
 ├── App.tsx                        # Top-level layout: Play/Pitch-detect/Metronome tabs, mode + tuning controls
 ├── index.css                      # Tailwind entry + violin color tokens (--color-violin-*)
@@ -167,17 +167,20 @@ The pitch detector has the same toggle: in Quarter-tone mode, `analyzeFrequency`
 The metronome provides three pattern libraries:
 
 **Western time signatures** — Build patterns from meter presets (2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8, 12/8) with:
+
 - Adjustable subdivisions (quarter notes, eighth notes, triplets, sixteenth notes)
 - Optional accent on the first beat
 - Click sounds with pitch differentiation (accent > beat > sub)
 
 **Arabic iqa'at** — Traditional Middle Eastern rhythmic cycles with authentic percussion:
+
 - 10 patterns: Maqsum, Baladi, Saidi, Malfuf, Ayyub, Wahda, Masmoudi Kebir, Chiftetelli, Karsilama, Samai Thaqil
 - Dum (low resonant) and Tak (high sharp) voices synthesized with Web Audio
 - Visual grouping and meter display (e.g., 4/4, 9/8, 10/8)
 - Arabic script labels (e.g., مقسوم for Maqsum)
 
 **Custom patterns** — Create your own rhythms:
+
 - Adjustable beat count (1-16 beats) and subdivision
 - Two voice modes: Western clicks (rest/beat/accent/sub) or Arabic percussion (rest/dum/tak)
 - Clickable beat grid to toggle steps through voice cycles
@@ -185,6 +188,7 @@ The metronome provides three pattern libraries:
 - Pattern library with rename and delete functionality
 
 **Practice features**:
+
 - Session timer with preset goals (5-60 minutes) or custom duration
 - Auto-log completed sessions with pattern name and BPM
 - Practice history showing recent sessions with daily/weekly totals
@@ -192,6 +196,7 @@ The metronome provides three pattern libraries:
 - Completion chime using Web Audio synthesis
 
 **Transport controls**:
+
 - BPM slider (30-260) with tap tempo
 - Fine adjustment buttons (±5, ±10 BPM)
 - Play/pause with animated pulse indicator
@@ -224,7 +229,7 @@ The metronome uses a sample-accurate Web Audio scheduler with the classic look-a
 
 Each string (Violin) or course (Oud) gets its own small `Tone.Sampler`, loaded from its own folder, instead of one sampler pitch-shifted across the whole instrument — a real string's recorded timbre only sounds right pitch-shifted a few semitones in either direction, not across the whole fingerboard. Folders live under `public/samples/`:
 
-```
+```bash
 public/samples/
 ├── violin/
 │   ├── string-1/   # G string  — README.txt lists: G3, Bb3, Db4, E4, G4

@@ -40,8 +40,8 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         "inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-violin-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violin-e/60 disabled:pointer-events-none disabled:opacity-50",
-        "data-[state=active]:bg-violin-a data-[state=active]:text-[#1a1109] data-[state=active]:shadow-md",
-        "hover:text-violin-text data-[state=active]:hover:text-[#1a1109]",
+        "data-[state=active]:bg-violin-a data-[state=active]:text-violin-panel data-[state=active]:shadow-md",
+        "hover:text-violin-text data-[state=active]:hover:text-violin-panel",
         className,
       )}
       {...props}
