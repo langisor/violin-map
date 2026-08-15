@@ -27,10 +27,10 @@ export function PitchTuner() {
         : "text-amber-400";
 
   return (
-    <Card>
+    <Card className="border-violin-border bg-violin-panel">
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-3 pb-0 sm:pb-0">
         <div>
-          <h2 className="text-sm font-semibold text-violin-text">Pitch detection</h2>
+          <h2 className="text-sm font-semibold text-violin-text">Pitch Detection</h2>
           <p className="text-xs text-violin-muted">
             Play a note near the microphone to see its name, MIDI number, and frequency.
           </p>
@@ -38,6 +38,7 @@ export function PitchTuner() {
         <Button
           variant={isListening ? "outline" : "default"}
           onClick={isListening ? stop : start}
+          className={isListening ? "" : "bg-primary hover:bg-primary-hover"}
         >
           {isListening ? "Stop" : "Start listening"}
         </Button>
@@ -98,7 +99,7 @@ export function PitchTuner() {
           <div className="relative mt-4 h-1.5 w-full max-w-64 rounded-full bg-violin-cell">
             <div className="absolute left-1/2 h-1.5 w-px -translate-x-1/2 bg-violin-border" />
             <div
-              className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violin-e transition-all"
+              className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary transition-all"
               style={{
                 left: `${Math.min(
                   100,

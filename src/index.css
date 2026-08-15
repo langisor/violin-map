@@ -1,19 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-violin-bg: #150e08;
-  --color-violin-panel: #1a1109;
-  --color-violin-panel-2: #241812;
-  --color-violin-border: #3a2a1c;
-  --color-violin-cell: #221810;
-  --color-violin-cell-open: #2e2015;
-  --color-violin-cell-active: #3d2c18;
-  --color-violin-text: #e9dcc7;
-  --color-violin-muted: #8a7358;
-  --color-violin-g: #8a4a2b;
-  --color-violin-d: #b06a35;
-  --color-violin-a: #c9812f;
-  --color-violin-e: #e8b84b;
+  /* Dark theme inspired by Guitar Tool Hub */
+  --color-violin-bg: #0a0a0a;
+  --color-violin-panel: #111111;
+  --color-violin-panel-2: #1a1a1a;
+  --color-violin-border: #2a2a2a;
+  --color-violin-cell: #151515;
+  --color-violin-cell-open: #1f1f1f;
+  --color-violin-cell-active: #252525;
+  --color-violin-text: #ffffff;
+  --color-violin-muted: #a0a0a0;
+  --color-violin-g: #3b82f6; /* Blue accent */
+  --color-violin-d: #60a5fa; /* Lighter blue */
+  --color-violin-a: #3b82f6; /* Blue accent */
+  --color-violin-e: #2563eb; /* Darker blue */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
 }
 
 body {

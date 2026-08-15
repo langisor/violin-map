@@ -5,9 +5,9 @@ import { detectPitch } from "@/lib/pitch-detection";
 // reaches the UI. This is what makes the tuner feel calm instead of
 // twitchy: a single noisy or octave-jumped frame gets outvoted by its
 // neighbors instead of flashing on screen.
-const HISTORY_SIZE = 9; // ~150ms of readings at 60fps
-const MIN_VOICED_FRAMES = 5; // majority of the window must have a pitch to report one
-const UPDATE_EVERY_N_FRAMES = 4; // commit a smoothed value ~15 times/sec instead of 60
+const HISTORY_SIZE = 15; // ~250ms of readings at 60fps (increased for more smoothing)
+const MIN_VOICED_FRAMES = 8; // majority of the window must have a pitch to report one (increased for stability)
+const UPDATE_EVERY_N_FRAMES = 6; // commit a smoothed value ~10 times/sec instead of 60 (reduced frequency)
 
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);

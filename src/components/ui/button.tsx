@@ -7,7 +7,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-violin-a text-[#1a1109] hover:bg-violin-e",
+        default: "bg-primary text-white hover:bg-primary-hover",
         outline:
           "border border-violin-border bg-violin-cell text-violin-text hover:bg-violin-cell-open",
         ghost: "text-violin-text hover:bg-violin-cell",

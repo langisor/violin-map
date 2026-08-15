@@ -123,71 +123,80 @@ export default function App() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-5 p-4 sm:gap-6 sm:p-6">
+    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 p-4 sm:gap-8 sm:p-6">
       {/* Navigation Header */}
-      <div className="flex flex-col gap-4 border-b border-violin-border pb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-violin-text sm:text-2xl">
-            Interactive String Lab
-          </h1>
-          <p className="text-xs text-violin-muted sm:text-sm">
-            Interactive fingerboards for Violin and Oud with audio synthesis,
-            maqam theory, and live pitch detection.
-          </p>
+      <nav className="flex flex-col gap-4 border-b border-violin-border pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+            <span className="text-xl">🎻</span>
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-violin-text sm:text-2xl">
+              String Lab
+            </h1>
+            <p className="text-xs text-violin-muted sm:text-sm">
+              Interactive fingerboards for Violin and Oud
+            </p>
+          </div>
         </div>
 
-        <Popover>
-          <PopoverTrigger
-            render={
-              <Button variant="outline" size="sm">
-                <BookOpen data-icon="inline-start" />
-                Quick guide
-              </Button>
-            }
-          />
-          <PopoverContent align="end" className="w-80 p-4">
-            <PopoverHeader>
-              <PopoverTitle>Start playing</PopoverTitle>
-              <PopoverDescription>
-                Choose an instrument and a view, then open Settings to tune
-                the fingerboard to your practice.
-              </PopoverDescription>
-            </PopoverHeader>
-            <ol className="mt-2 flex list-decimal flex-col gap-1 pl-4 text-xs text-muted-foreground">
-              <li>Select a maqam or western scale to highlight its notes.</li>
-              <li>Tap a note on the fingerboard to hear it.</li>
-              <li>Use Practice notes to record and review a phrase.</li>
-            </ol>
-          </PopoverContent>
-        </Popover>
+        <div className="flex flex-wrap items-center gap-3">
+          <Popover>
+            <PopoverTrigger
+              render={
+                <Button variant="ghost" size="sm" className="text-violin-muted hover:text-violin-text">
+                  <BookOpen data-icon="inline-start" className="mr-2 h-4 w-4" />
+                  Guide
+                </Button>
+              }
+            />
+            <PopoverContent align="end" className="w-80 p-4 bg-violin-bg text-violin-text">
+              <PopoverHeader>
+                <PopoverTitle>Start playing</PopoverTitle>
+                <PopoverDescription>
+                  Choose an instrument and a view, then open Settings to tune
+                  the fingerboard to your practice.
+                </PopoverDescription>
+              </PopoverHeader>
+              <ol className="mt-2 flex list-decimal flex-col gap-1 pl-4 text-xs ">
+                <li>Select a maqam or western scale to highlight its notes.</li>
+                <li>Tap a note on the fingerboard to hear it.</li>
+                <li>Use Practice notes to record and review a phrase.</li>
+              </ol>
+            </PopoverContent>
+          </Popover>
 
-        {/* Instrument Selector */}
-        <Tabs
-          value={instrument}
-          onValueChange={(v) => setInstrument(v as Instrument)}
-        >
-          <TabsList className="grid w-full grid-cols-2 sm:inline-flex sm:w-auto">
-            <TabsTrigger value="violin">🎻 Violin</TabsTrigger>
-            <TabsTrigger
-              value="oud"
-              className="data-[state=active]:bg-amber-600 data-[state=active]:text-amber-950"
-            >
-              🪕 Oud (العود)
+          {/* Instrument Selector */}
+          <Tabs
+            value={instrument}
+            onValueChange={(v) => setInstrument(v as Instrument)}
+          >
+            <TabsList className="grid w-full grid-cols-2 sm:inline-flex sm:w-auto">
+              <TabsTrigger value="violin">Violin</TabsTrigger>
+              <TabsTrigger
+                value="oud"
+                className="data-[state=active]:bg-primary data-[state=active]:text-white"
+              >
+                Oud
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </nav>
+
+      {/* View Selector */}
+      <div className="flex flex-col gap-4">
+        <h2 className="text-lg font-semibold text-violin-text">Browse Tools</h2>
+        <Tabs value={view} onValueChange={(v) => setView(v as View)}>
+          <TabsList className="grid w-full grid-cols-3 sm:inline-flex sm:w-auto">
+            <TabsTrigger value="play">
+              {instrument === "violin" ? "Fingerboard" : "Fingerboard"}
             </TabsTrigger>
+            <TabsTrigger value="pitch">Pitch Detection</TabsTrigger>
+            <TabsTrigger value="metronome">Metronome</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
-
-      {/* View Selector */}
-      <Tabs value={view} onValueChange={(v) => setView(v as View)}>
-        <TabsList className="grid w-full grid-cols-3 sm:inline-flex sm:w-auto">
-          <TabsTrigger value="play">
-            {instrument === "violin" ? "Violin Fingerboard" : "Oud Fingerboard"}
-          </TabsTrigger>
-          <TabsTrigger value="pitch">Pitch Detection</TabsTrigger>
-          <TabsTrigger value="metronome">Metronome</TabsTrigger>
-        </TabsList>
-      </Tabs>
 
       {view === "metronome" ? (
         <Metronome />
@@ -197,11 +206,11 @@ export default function App() {
         <OudPage />
       ) : (
         <>
-          <Card>
-            <CardHeader className="gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <Card className="border-violin-border bg-violin-panel">
+            <CardHeader className="gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <CardTitle>Fingerboard workspace</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-violin-text">Fingerboard workspace</CardTitle>
+                <CardDescription className="text-violin-muted">
                   Adjust your setup, choose a scale, then play directly on the board.
                 </CardDescription>
               </div>
@@ -209,16 +218,16 @@ export default function App() {
                 <Sheet>
                   <SheetTrigger
                     render={
-                      <Button size="sm">
+                      <Button size="sm" className="bg-primary hover:bg-primary-hover">
                         <Settings2 data-icon="inline-start" />
                         Settings
                       </Button>
                     }
                   />
-                  <SheetContent side="right" className="overflow-y-auto">
+                  <SheetContent side="right" className="overflow-y-auto bg-violin-panel">
                     <SheetHeader>
-                      <SheetTitle>Fingerboard settings</SheetTitle>
-                      <SheetDescription>
+                      <SheetTitle className="text-violin-text">Fingerboard settings</SheetTitle>
+                      <SheetDescription className="text-violin-muted">
                         Shape the instrument, sound, and notation for this session.
                       </SheetDescription>
                     </SheetHeader>
@@ -288,10 +297,10 @@ export default function App() {
                       </Button>
                     }
                   />
-                  <DrawerContent>
+                  <DrawerContent className="bg-violin-panel">
                     <DrawerHeader>
-                      <DrawerTitle>Practice notes</DrawerTitle>
-                      <DrawerDescription>
+                      <DrawerTitle className="text-violin-text">Practice notes</DrawerTitle>
+                      <DrawerDescription className="text-violin-muted">
                         Record each note you play, then analyze the phrase when you are ready.
                       </DrawerDescription>
                     </DrawerHeader>
@@ -311,7 +320,7 @@ export default function App() {
                 </Drawer>
               </div>
             </CardHeader>
-            <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
+            <CardContent className="p-6 pt-0">
               <p className="text-xs text-violin-muted">
                 {tuning.label} tuning · {resolution === "quarter-tone" ? "24-EDO" : "12-EDO"} · {orientation} view
               </p>
