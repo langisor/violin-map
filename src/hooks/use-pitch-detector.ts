@@ -9,6 +9,8 @@ const HISTORY_SIZE = 15; // ~250ms of readings at 60fps (increased for more smoo
 const MIN_VOICED_FRAMES = 8; // majority of the window must have a pitch to report one (increased for stability)
 const UPDATE_EVERY_N_FRAMES = 6; // commit a smoothed value ~10 times/sec instead of 60 (reduced frequency)
 
+export type PitchSignalQuality = "none" | "unstable" | "stable";
+
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
@@ -19,6 +21,8 @@ export function usePitchDetector() {
   const [frequency, setFrequency] = useState<number | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confidence, setConfidence] = useState(0);
+  const [frequencyHistory, setFrequencyHistory] = useState<number[]>([]);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -45,7 +49,18 @@ export function usePitchDetector() {
       if (frameCountRef.current >= UPDATE_EVERY_N_FRAMES) {
         frameCountRef.current = 0;
         const voiced = history.filter((v): v is number => v !== null);
-        setFrequency(voiced.length >= MIN_VOICED_FRAMES ? median(voiced) : null);
+        const nextFrequency = voiced.length >= MIN_VOICED_FRAMES ? median(voiced) : null;
+        const voicedRatio = voiced.length / history.length;
+        const center = nextFrequency ?? median(voiced);
+        const spread = center > 0 && voiced.length > 1
+          ? Math.max(...voiced.map((value) => Math.abs(1200 * Math.log2(value / center))))
+          : 120;
+        const stability = Math.max(0, Math.min(1, 1 - spread / 120));
+        setFrequency(nextFrequency);
+        setConfidence(Math.round(voicedRatio * stability * 100));
+        if (nextFrequency !== null) {
+          setFrequencyHistory((previous) => [...previous, nextFrequency].slice(-24));
+        }
       }
     }
     rafRef.current = requestAnimationFrame(tick);
@@ -61,6 +76,8 @@ export function usePitchDetector() {
     analyserRef.current = null;
     historyRef.current = [];
     frameCountRef.current = 0;
+    setConfidence(0);
+    setFrequencyHistory([]);
     setIsListening(false);
     setFrequency(null);
   }, []);
@@ -94,5 +111,11 @@ export function usePitchDetector() {
   // Release the mic if the component unmounts while listening.
   useEffect(() => stop, [stop]);
 
-  return { frequency, isListening, error, start, stop };
+  const quality: PitchSignalQuality = !frequency
+    ? "none"
+    : confidence >= 70
+      ? "stable"
+      : "unstable";
+
+  return { frequency, isListening, error, confidence, quality, frequencyHistory, start, stop };
 }

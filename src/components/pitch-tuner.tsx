@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePitchDetector } from "@/hooks/use-pitch-detector";
 import { analyzeFrequency, type Resolution } from "@/lib/violin-theory";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,11 @@ import {
 import { cn } from "@/lib/utils";
 
 export function PitchTuner() {
-  const { frequency, isListening, error, start, stop } = usePitchDetector();
+  const { frequency, isListening, error, confidence, quality, frequencyHistory, start, stop } = usePitchDetector();
   const [resolution, setResolution] = useState<Resolution>("semitone");
-  const result = frequency ? analyzeFrequency(frequency, resolution) : null;
+  const [referenceFrequency, setReferenceFrequency] = useState(440);
+  const [referenceInput, setReferenceInput] = useState("440");
+  const result = frequency ? analyzeFrequency(frequency, resolution, referenceFrequency) : null;
 
   // Each resolution's cent window is half its step size: +/-50c for semitones, +/-25c for quarter tones.
   const centsWindow = resolution === "quarter-tone" ? 25 : 50;
@@ -25,6 +27,17 @@ export function PitchTuner() {
       : Math.abs(result.cents) <= inTuneThreshold
         ? "text-emerald-400"
         : "text-amber-400";
+
+  useEffect(() => {
+    setReferenceInput(referenceFrequency.toString());
+  }, [referenceFrequency]);
+
+  const applyReference = (value: string) => {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      setReferenceFrequency(Math.min(460, Math.max(420, parsed)));
+    }
+  };
 
   return (
     <Card className="border-violin-border bg-violin-panel">
@@ -71,6 +84,28 @@ export function PitchTuner() {
           </Tooltip>
         </div>
 
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-violin-muted">Reference</span>
+          {[440, 442].map((value) => (
+            <Button key={value} size="sm" variant={referenceFrequency === value ? "default" : "outline"} onClick={() => setReferenceFrequency(value)}>
+              A = {value}
+            </Button>
+          ))}
+          <input
+            aria-label="Reference pitch in hertz"
+            type="number"
+            min="420"
+            max="460"
+            step="0.1"
+            value={referenceInput}
+            onChange={(event) => setReferenceInput(event.target.value)}
+            onBlur={() => applyReference(referenceInput)}
+            onKeyDown={(event) => { if (event.key === "Enter") applyReference(referenceInput); }}
+            className="h-8 w-20 rounded-md border border-violin-border bg-violin-cell px-2 text-sm text-violin-text outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+          <span className="text-xs text-violin-muted">Hz</span>
+        </div>
+
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
         <div className="mt-8 flex flex-col items-center gap-2 text-center">
@@ -79,7 +114,15 @@ export function PitchTuner() {
           </div>
 
           <div className={cn("text-sm font-medium", centsColor)}>
-            {result ? `${result.cents > 0 ? "+" : ""}${result.cents} cents` : "no signal"}
+            {quality === "none" ? "no signal" : quality === "unstable" ? `uncertain signal (${confidence}%)` : `${result?.cents && result.cents > 0 ? "+" : ""}${result?.cents ?? 0} cents`}
+          </div>
+
+          <div className="mt-2 flex h-6 items-end gap-0.5" aria-label="Recent pitch stability">
+            {frequencyHistory.map((reading, index) => {
+              const readingResult = analyzeFrequency(reading, resolution, referenceFrequency);
+              const height = Math.max(4, Math.min(24, 24 - Math.abs(readingResult.cents) / centsWindow * 20));
+              return <span key={`${reading}-${index}`} className={cn("w-1 rounded-sm", Math.abs(readingResult.cents) <= inTuneThreshold ? "bg-emerald-400" : "bg-amber-400")} style={{ height }} />;
+            })}
           </div>
 
           <div className="mt-2 flex gap-6 text-xs text-violin-muted">
@@ -105,7 +148,7 @@ export function PitchTuner() {
                   100,
                   Math.max(0, ((result?.cents ?? 0) + centsWindow) / (centsWindow * 2) * 100)
                 )}%`,
-                opacity: result ? 1 : 0.3,
+                opacity: quality === "stable" ? 1 : 0.3,
               }}
             />
           </div>

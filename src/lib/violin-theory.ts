@@ -151,9 +151,10 @@ export interface PitchResult {
  */
 export function analyzeFrequency(
   frequency: number,
-  resolution: Resolution = "semitone"
+  resolution: Resolution = "semitone",
+  referenceFrequency = 440
 ): PitchResult {
-  const midiFloat = 69 + 12 * Math.log2(frequency / 440);
+  const midiFloat = 69 + 12 * Math.log2(frequency / referenceFrequency);
 
   if (resolution === "semitone") {
     const midi = Math.round(midiFloat);
