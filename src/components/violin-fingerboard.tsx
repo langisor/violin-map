@@ -66,7 +66,7 @@ export function ViolinFingerboard({
   const positionStart = useMemo(() => ({ 1: 0, 2: 3, 3: 5, 4: 7, 5: 8, 6: 10, 7: 12, 8: 14 })[position], [position]);
   const steps = useMemo(() => stepsFor(resolution).map((step) => step + positionStart), [resolution, positionStart]);
   const displayStrings = useMemo(
-    () => (leftHanded ? strings : [...strings].reverse()),
+    () => (leftHanded ? [...strings].reverse() : strings),
     [leftHanded, strings],
   );
   const scaleSummary = useMemo(() => {
