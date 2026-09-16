@@ -125,7 +125,7 @@ export interface DoubleStopPosition {
 
 export function generateDoubleStopPositions(
   doubleStop: DoubleStopPreset,
-  startNote: string,
+  _startNote: string,
   strings: { openNote: string }[]
 ): DoubleStopPosition[] {
   const positions: DoubleStopPosition[] = [];
@@ -176,7 +176,7 @@ export function generateDoubleStopExercise(
   _startNote: string = "G3",
   strings: { openNote: string }[]
 ): DoubleStopExercise {
-  const positions = generateDoubleStopPositions(doubleStop, startNote, strings);
+  const positions = generateDoubleStopPositions(doubleStop, _startNote, strings);
   
   // Filter for playable positions
   const playablePositions = positions.filter(pos => 
