@@ -73,7 +73,7 @@ export function ViolinFingerboard({
     const source = activeScale ?? activeMaqam;
     if (!source) return null;
 
-    const noteNames = source.intervals.slice(0, -1).map((offset) => labelAtStep(`${source.tonic}3`, offset, notation));
+    const noteNames = source.intervals.slice(0, -1).map((offset) => labelAtStep(`${source.tonic}4`, offset, notation));
     const intervalValues = source.intervals.slice(1).map((offset, index) => Number((offset - source.intervals[index]).toFixed(2)));
     const title = activeScale
       ? `${source.tonic} ${activeScale.kind === "major" ? "Major" : "Natural minor"}`
@@ -117,7 +117,9 @@ export function ViolinFingerboard({
            </div>
            <div className="mt-1 text-[10px] text-slate-300">
              Intervals: {scaleSummary.intervalValues.map((value) => `${value}`).join(" - ")}
+             {/* Intervals: {scaleSummary.noteNames.map((note, index) => `${note} (${scaleSummary.intervalValues[index]})`).join(" - ")} */}
            </div>
+           
          </div>
        ) : (
          <div className="flex-1" />

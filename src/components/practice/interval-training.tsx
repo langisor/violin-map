@@ -41,10 +41,14 @@ export function IntervalTraining() {
 
   useEffect(() => {
     generateNewExercise();
-  }, [generateNewExercise]);
+  // }, [generateNewExercise]);
+  }, [mode]); // Regenerate exercise when mode changes
 
   const playInterval = useCallback(async () => {
-    if (!exercise) return;
+    if (!exercise) {
+      console.log("No exercise available to play.");
+      return;
+    }
     
     setIsPlaying(true);
     
