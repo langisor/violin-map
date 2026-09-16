@@ -86,6 +86,46 @@ export const AJNAS: JinsPreset[] = [
       "Root (half-flat), three-quarter tone, whole tone. A three-note trichord rooted on a quarter-tone degree.",
     intervals: [0, 1.5, 3.5],
   },
+  {
+    id: "huzam",
+    nameEn: "Jins Huzam",
+    nameAr: "جنس حزام",
+    description:
+      "Root, three-quarter tone, half tone, augmented 2nd. A variant of Bayati with a different upper structure.",
+    intervals: [0, 1.5, 2.5, 5],
+  },
+  {
+    id: "irak",
+    nameEn: "Jins Irak",
+    nameAr: "جنس عراق",
+    description:
+      "Root, three-quarter tone, three-quarter tone, three-quarter tone. A very distinctive trichord used in Iraqi music.",
+    intervals: [0, 1.5, 3, 4.5],
+  },
+  {
+    id: "mustar",
+    nameEn: "Jins Mustar",
+    nameAr: "جنس مستار",
+    description:
+      "Root, half tone, three-quarter tone, whole tone. Similar to Hijaz but with quarter-tone variations.",
+    intervals: [0, 1, 2.5, 5],
+  },
+  {
+    id: "ushaq",
+    nameEn: "Jins Ushaq",
+    nameAr: "جنس عشاق",
+    description:
+      "Root, whole tone, three-quarter tone, three-quarter tone. A romantic jins with soft quarter-tone intervals.",
+    intervals: [0, 2, 3.5, 5],
+  },
+  {
+    id: "awj",
+    nameEn: "Jins Awj",
+    nameAr: "جنس أوج",
+    description:
+      "Root, whole tone, whole tone, three-quarter tone. A brighter variant with raised upper intervals.",
+    intervals: [0, 2, 4, 5.5],
+  },
 ];
 
 export function getJins(id: string): JinsPreset | undefined {
@@ -227,6 +267,110 @@ export const MAQAMAT: MaqamPreset[] = [
     intervals: [0, 2, 3, 6, 7, 9, 10, 12],
     lowerJins: { jinsId: "nikriz", rootOffset: 0 },
     upperJins: { jinsId: "nahawand", rootOffset: 7 },
+  },
+  {
+    id: "huzam",
+    nameEn: "Maqam Huzam",
+    nameAr: "مقام حزام",
+    tonic: "F",
+    description:
+      "A variant of Bayati with a different upper structure. Features quarter-tone variations that give it a unique color.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/huzam.php",
+    // F(0), G½♭(1.5), Ab(2.5), C(5), D(7), E½♭(8.5), F(10), G½♭(11.5)
+    intervals: [0, 1.5, 2.5, 5, 7, 8.5, 10, 11.5],
+    lowerJins: { jinsId: "huzam", rootOffset: 0 },
+    upperJins: { jinsId: "ajam", rootOffset: 7 },
+  },
+  {
+    id: "irak",
+    nameEn: "Maqam Irak",
+    nameAr: "مقام عراق",
+    tonic: "G",
+    description:
+      "A distinctive Iraqi maqam with unique quarter-tone intervals. Deeply emotional and complex in structure.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/irak.php",
+    // G(0), A½♭(1.5), B½♭(3), C½♭(4.5), D(7), E½♭(8.5), F½♭(10), G(12)
+    intervals: [0, 1.5, 3, 4.5, 7, 8.5, 10, 12],
+    lowerJins: { jinsId: "irak", rootOffset: 0 },
+    upperJins: { jinsId: "bayati", rootOffset: 7 },
+  },
+  {
+    id: "mustar",
+    nameEn: "Maqam Mustar",
+    nameAr: "مقام مستار",
+    tonic: "A",
+    description:
+      "Similar to Hijaz but with quarter-tone variations. Creates a mysterious and exotic atmosphere.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/mustar.php",
+    // A(0), Bb(1), C½♭(2.5), D(5), E(7), F(8), G½♭(9.5), A(12)
+    intervals: [0, 1, 2.5, 5, 7, 8, 9.5, 12],
+    lowerJins: { jinsId: "mustar", rootOffset: 0 },
+    upperJins: { jinsId: "nahawand", rootOffset: 7 },
+  },
+  {
+    id: "ushaq",
+    nameEn: "Maqam Ushaq",
+    nameAr: "مقام عشاق",
+    tonic: "E",
+    description:
+      "A romantic maqam with soft quarter-tone intervals. Often used in love songs and emotional compositions.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/ushaq.php",
+    // E(0), F#(2), G½♭(3.5), A(5), B(7), C#(9), D½♭(10.5), E(12)
+    intervals: [0, 2, 3.5, 5, 7, 9, 10.5, 12],
+    lowerJins: { jinsId: "ushaq", rootOffset: 0 },
+    upperJins: { jinsId: "bayati", rootOffset: 7 },
+  },
+  {
+    id: "awj",
+    nameEn: "Maqam Awj",
+    nameAr: "مقام أوج",
+    tonic: "C",
+    description:
+      "A bright maqam with raised upper intervals. Creates a sense of elevation and resolution.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/awj.php",
+    // C(0), D(2), E(4), F½♭(5.5), G(7), A(9), B(11), C(12)
+    intervals: [0, 2, 4, 5.5, 7, 9, 11, 12],
+    lowerJins: { jinsId: "awj", rootOffset: 0 },
+    upperJins: { jinsId: "ajam", rootOffset: 7 },
+  },
+  {
+    id: "suzidil",
+    nameEn: "Maqam Suzidil",
+    nameAr: "مقام سوزدل",
+    tonic: "C",
+    description:
+      "A complex maqam with both Hijaz and Rast elements. Creates tension and resolution through its unique interval structure.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/suzidil.php",
+    // C(0), D(2), E½♭(3.5), F#(6), G(7), A(9), B½♭(10.5), C(12)
+    intervals: [0, 2, 3.5, 6, 7, 9, 10.5, 12],
+    lowerJins: { jinsId: "rast", rootOffset: 0 },
+    upperJins: { jinsId: "hijaz", rootOffset: 7 },
+  },
+  {
+    id: "zirafkand",
+    nameEn: "Maqam Zirafkand",
+    nameAr: "مقام زيرافكاند",
+    tonic: "G",
+    description:
+      "A Persian-influenced maqam with complex quarter-tone relationships. Rich and exotic in character.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/zirafkand.php",
+    // G(0), A(2), B½♭(3.5), C(5), D(7), E½♭(8.5), F(10), G(12)
+    intervals: [0, 2, 3.5, 5, 7, 8.5, 10, 12],
+    lowerJins: { jinsId: "rast", rootOffset: 0 },
+    upperJins: { jinsId: "sikah", rootOffset: 7 },
+  },
+  {
+    id: "lami",
+    nameEn: "Maqam Lami",
+    nameAr: "مقام لامي",
+    tonic: "F",
+    description:
+      "A maqam with a minor-like character but with quarter-tone variations. Often used in sad and contemplative music.",
+    maqamWorldUrl: "https://www.maqamworld.com/ar/maqam/lami.php",
+    // F(0), G(2), A½♭(3.5), Bb(5), C(7), D(9), E½♭(10.5), F(12)
+    intervals: [0, 2, 3.5, 5, 7, 9, 10.5, 12],
+    lowerJins: { jinsId: "bayati", rootOffset: 0 },
+    upperJins: { jinsId: "kurd", rootOffset: 7 },
   },
 ];
 

@@ -32,6 +32,7 @@ import { GuidedRoutines } from "@/components/practice/guided-routines";
 import { ChordPractice } from "@/components/practice/chord-practice";
 import { VibratoPractice } from "@/components/practice/vibrato-practice";
 import { HarmonicPractice } from "@/components/practice/harmonic-practice";
+import { DoubleStopPractice } from "@/components/practice/double-stop-practice";
 import {
   Card,
   CardContent,
@@ -79,7 +80,7 @@ import { Metronome } from "@/components/metronome/metronome";
 type Instrument = "violin" | "oud";
 type View = "play" | "pitch" | "metronome" | "practice";
 type ScaleSystem = "eastern" | "western";
-type PracticeView = "intervals" | "scales" | "routines" | "chords" | "vibrato" | "harmonics";
+type PracticeView = "intervals" | "scales" | "routines" | "chords" | "vibrato" | "harmonics" | "double-stops";
 
 export default function App() {
   const [instrument, setInstrument] = useState<Instrument>("violin");
@@ -101,6 +102,7 @@ export default function App() {
   const [recordedNotes, setRecordedNotes] = useState<RecordedNote[]>([]);
   const [recordingDialogOpen, setRecordingDialogOpen] = useState(false);
   const [practiceView, setPracticeView] = useState<PracticeView>("intervals");
+  const [showScaleDegrees, setShowScaleDegrees] = useState(false);
 
   const tuning = useMemo(
     () => TUNINGS.find((t) => t.id === tuningId) ?? TUNINGS[0],
@@ -229,6 +231,7 @@ export default function App() {
                   <TabsTrigger value="chords">Chords</TabsTrigger>
                   <TabsTrigger value="vibrato">Vibrato</TabsTrigger>
                   <TabsTrigger value="harmonics">Harmonics</TabsTrigger>
+                  <TabsTrigger value="double-stops">Double-Stops</TabsTrigger>
                 </TabsList>
               </Tabs>
             </CardContent>
@@ -240,6 +243,7 @@ export default function App() {
           {practiceView === "chords" && <ChordPractice />}
           {practiceView === "vibrato" && <VibratoPractice />}
           {practiceView === "harmonics" && <HarmonicPractice />}
+          {practiceView === "double-stops" && <DoubleStopPractice />}
         </>
       ) : instrument === "oud" ? (
         <OudPage />
@@ -321,6 +325,15 @@ export default function App() {
                         <div className="flex flex-wrap gap-2">
                           <Button size="sm" variant={orientation === "horizontal" ? "default" : "outline"} onClick={() => setOrientation("horizontal")}>Horizontal</Button>
                           <Button size="sm" variant={orientation === "vertical" ? "default" : "outline"} onClick={() => setOrientation("vertical")}>Vertical</Button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <span className="text-sm font-medium text-violin-text">Scale Degrees</span>
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant={showScaleDegrees ? "default" : "outline"} onClick={() => setShowScaleDegrees(!showScaleDegrees)}>
+                            {showScaleDegrees ? "Hide" : "Show"}
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -509,6 +522,7 @@ export default function App() {
             recordNotes={recordNotes}
             recordedNotes={recordedNotes}
             onRecordedNotesChange={setRecordedNotes}
+            showScaleDegrees={showScaleDegrees}
           />
 
           <RecordNotesDialog

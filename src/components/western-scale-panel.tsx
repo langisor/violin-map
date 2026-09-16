@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   WESTERN_KEYS,
   westernScale,
+  getKeySignature,
   type WesternScaleKind,
   type WesternScalePreset,
 } from "@/lib/western-scale-theory";
@@ -52,9 +53,9 @@ export function WesternScalePanel<Mode extends string>({
     if (!selectedScale) return;
     const sequence = {
       ...selectedScale,
-      nameEn: `${selectedScale.tonic} ${selectedScale.kind}`,
+      nameEn: `${selectedScale.tonic} ${selectedScale.displayName}`,
       nameAr: "",
-      description: "",
+      description: selectedScale.description,
       maqamWorldUrl: "",
       lowerJins: { jinsId: "", rootOffset: 0 },
     } satisfies MaqamPreset;
@@ -77,9 +78,9 @@ export function WesternScalePanel<Mode extends string>({
       <CardContent className="space-y-4 pt-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-violin-muted">Scale</span>
-          {(["major", "minor"] as const).map((option) => (
-            <Button key={option} size="sm" variant={kind === option ? "default" : "outline"} onClick={() => setKind(option)}>
-              {option === "major" ? "Major" : "Natural minor"}
+          {(["major", "minor", "pentatonic-major", "pentatonic-minor", "blues", "dorian", "phrygian", "lydian", "mixolydian", "locrian", "harmonic-minor", "melodic-minor"] as const).map((option) => (
+            <Button key={option} size="sm" variant={kind === option ? "default" : "outline"} onClick={() => setKind(option)} className="text-[10px]">
+              {option.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
             </Button>
           ))}
         </div>
@@ -92,7 +93,21 @@ export function WesternScalePanel<Mode extends string>({
           {selectedScale && <Button size="sm" variant="ghost" onClick={() => { stop(); onClear(); }} className="text-violin-muted">Clear</Button>}
         </div>
         {selectedScale && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky-900/40 bg-sky-950/20 p-3 text-xs text-sky-100">
-          <span><strong>{selectedScale.tonic} {selectedScale.kind === "major" ? "Major" : "Natural Minor"}</strong>: degrees 1–7, plus octave.</span>
+          <div className="flex flex-col gap-1">
+            <span><strong>{selectedScale.tonic} {selectedScale.displayName}</strong>: {selectedScale.description}</span>
+            <span className="text-[10px] text-sky-200/70">
+              Key Signature: {(() => {
+                const keySig = getKeySignature(selectedScale.tonic, selectedScale.kind);
+                if (keySig.sharps.length > 0) {
+                  return `${keySig.sharps.join(", ")} (${keySig.symbol})`;
+                } else if (keySig.flats.length > 0) {
+                  return `${keySig.flats.join(", ")} (${keySig.symbol})`;
+                } else {
+                  return "No sharps or flats";
+                }
+              })()}
+            </span>
+          </div>
           <Button size="sm" variant={isPlaying ? "default" : "outline"} onClick={isPlaying ? stop : play} className={isPlaying ? "bg-sky-500 text-slate-950 hover:bg-sky-400" : "border-sky-500/60 text-sky-200 hover:bg-sky-950/50"}>
             {isPlaying ? <><Square className="h-3.5 w-3.5" /> Stop</> : <><Play className="h-3.5 w-3.5" /> Play scale</>}
           </Button>

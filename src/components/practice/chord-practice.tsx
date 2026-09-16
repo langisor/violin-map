@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Play, Check, X, RotateCcw, Music, HelpCircle } from "lucide-react";
+import { Play, Check, RotateCcw, Music, HelpCircle } from "lucide-react";
 import {
   generateChordOnFingerboard,
   getChordTones,
@@ -12,6 +12,9 @@ import {
   type ChordExerciseMode,
   type ChordOnFingerboard,
   CHORDS,
+  CHORD_PROGRESSIONS,
+  transposeProgression,
+  type ChordProgressionPreset,
 } from "@/lib/practice/chord-theory";
 import { Note } from "tonal";
 import { violinAudioEngine } from "@/lib/violin-audio";
@@ -30,6 +33,10 @@ export function ChordPractice() {
     chordsAttempted: {} as Record<string, number>,
     chordsCorrect: {} as Record<string, number>,
   });
+  const [progressionMode, setProgressionMode] = useState(false);
+  const [selectedProgression, setSelectedProgression] = useState<ChordProgressionPreset | null>(null);
+  const [progressionKey, setProgressionKey] = useState("C");
+  const [currentChordIndex, setCurrentChordIndex] = useState(0);
 
   const strings = buildStrings(TUNINGS[0]);
 
@@ -76,6 +83,39 @@ export function ChordPractice() {
     
     setIsPlaying(false);
   }, [exercise, isPlaying]);
+
+  const playProgression = useCallback(async () => {
+    if (!selectedProgression || isPlaying) return;
+    
+    setIsPlaying(true);
+    const progression = transposeProgression(selectedProgression, progressionKey);
+    
+    for (let i = 0; i < progression.chords.length; i++) {
+      setCurrentChordIndex(i);
+      const chordInKey = progression.chords[i];
+      const chordTones = getChordTones(chordInKey.chordType, chordInKey.root);
+      
+      // Play chord tones
+      for (const note of chordTones) {
+        const frequency = Note.freq(note) || 440;
+        await violinAudioEngine.noteOn("str0", frequency, "pluck");
+      }
+      
+      // Let chord ring
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Stop all notes
+      chordTones.forEach(() => {
+        violinAudioEngine.noteOff("str0", "pluck");
+      });
+      
+      // Brief pause between chords
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    setCurrentChordIndex(0);
+    setIsPlaying(false);
+  }, [selectedProgression, isPlaying, progressionKey]);
 
   const handleAnswer = useCallback((answer: string) => {
     if (!exercise || showResult) return;
@@ -149,6 +189,13 @@ export function ChordPractice() {
               onClick={() => setMode("construct")}
             >
               Construct Chords
+            </Button>
+            <Button
+              size="sm"
+              variant={progressionMode ? "default" : "outline"}
+              onClick={() => setProgressionMode(!progressionMode)}
+            >
+              Progressions
             </Button>
           </div>
         </CardContent>
@@ -323,6 +370,102 @@ export function ChordPractice() {
           )}
         </CardContent>
       </Card>
+
+      {/* Chord Progression Player */}
+      {progressionMode && (
+        <Card className="border-violin-border bg-violin-panel">
+          <CardHeader>
+            <CardTitle className="text-violin-text">Chord Progression Player</CardTitle>
+            <CardDescription className="text-violin-muted">
+              Practice common chord progressions in any key
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm text-violin-muted">Key:</span>
+              {["C", "G", "D", "A", "E", "F", "Bb", "Eb"].map((key) => (
+                <Button
+                  key={key}
+                  size="sm"
+                  variant={progressionKey === key ? "default" : "outline"}
+                  onClick={() => setProgressionKey(key)}
+                >
+                  {key}
+                </Button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              {CHORD_PROGRESSIONS.map((progression) => (
+                <div
+                  key={progression.id}
+                  className={`rounded-lg border p-4 cursor-pointer transition-colors ${
+                    selectedProgression?.id === progression.id
+                      ? "border-amber-400/50 bg-amber-500/10"
+                      : "border-cyan-400/30 bg-[#0b1020] hover:border-cyan-400/50"
+                  }`}
+                  onClick={() => setSelectedProgression(progression)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-violin-text">{progression.name}</div>
+                      <div className="text-xs text-violin-muted">{progression.description}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {progression.style}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {progression.difficulty}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  {selectedProgression?.id === progression.id && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex flex-wrap gap-1">
+                        {transposeProgression(progression, progressionKey).chords.map((chord, index) => (
+                          <div
+                            key={index}
+                            className={`px-2 py-1 rounded text-xs ${
+                              currentChordIndex === index && isPlaying
+                                ? "bg-amber-400 text-slate-950 font-semibold"
+                                : "bg-cyan-400/20 text-cyan-300"
+                            }`}
+                          >
+                            {chord.root}{chord.chordType.symbol}
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playProgression();
+                        }}
+                        disabled={isPlaying}
+                        className="w-full"
+                      >
+                        {isPlaying ? (
+                          <>
+                            <Music className="mr-2 h-4 w-4" />
+                            Playing...
+                          </>
+                        ) : (
+                          <>
+                            <Play className="mr-2 h-4 w-4" />
+                            Play Progression
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Chord Reference */}
       <Card className="border-violin-border bg-violin-panel">

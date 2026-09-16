@@ -12,7 +12,7 @@ import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
 import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { cn } from "@/lib/utils";
-import { isNoteInWesternScale, type WesternScalePreset } from "@/lib/western-scale-theory";
+import { isNoteInWesternScale, getScaleDegree, type WesternScalePreset } from "@/lib/western-scale-theory";
 import type { RecordedNote } from "@/lib/note-recording";
 
 /**
@@ -42,6 +42,7 @@ interface ViolinFingerboardProps {
   recordNotes?: boolean;
   recordedNotes?: RecordedNote[];
   onRecordedNotesChange?: (notes: RecordedNote[]) => void;
+  showScaleDegrees?: boolean;
 }
 
 export function ViolinFingerboard({
@@ -58,6 +59,7 @@ export function ViolinFingerboard({
   recordNotes = false,
   recordedNotes = [],
   onRecordedNotesChange,
+  showScaleDegrees = false,
 }: ViolinFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
   const [leftHanded, setLeftHanded] = useState(false);
@@ -182,6 +184,7 @@ export function ViolinFingerboard({
                  ? isNoteInMaqam(str.openNote, step, activeMaqam)
                  : false;
                const inScale = activeScale ? isNoteInWesternScale(str.openNote, step, activeScale) : false;
+               const scaleDegree = showScaleDegrees && activeScale ? getScaleDegree(str.openNote, step, activeScale) : null;
                const isPlaying = playingFrequency !== null && Math.abs(1200 * Math.log2(frequency / playingFrequency)) < 20;
                const isRecorded = recordedNotes.some((note) => note.id === cellKey);
                return (
@@ -232,6 +235,11 @@ export function ViolinFingerboard({
                      {noteName}
                    </span>
                    <span className="relative z-10 text-[9px] text-cyan-100/80">{step}</span>
+                   {scaleDegree && (
+                     <span className="absolute bottom-0.5 right-1 z-10 text-[8px] font-bold text-sky-300 bg-sky-900/50 px-1 rounded">
+                       {scaleDegree}
+                     </span>
+                   )}
                    {(inMaqam || inScale) && (
                      <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-sm shadow-amber-300" />
                    )}

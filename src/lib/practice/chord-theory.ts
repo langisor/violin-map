@@ -84,6 +84,197 @@ export const CHORDS: ChordPreset[] = [
   },
 ];
 
+export interface ChordProgressionPreset {
+  id: string;
+  name: string;
+  description: string;
+  key: string;
+  chords: ChordInKey[];
+  style: "classical" | "jazz" | "pop" | "folk" | "blues";
+  difficulty: "beginner" | "intermediate" | "advanced";
+}
+
+export interface ChordInKey {
+  root: string;
+  chordType: ChordPreset;
+  romanNumeral: string;
+  function: string; // "tonic", "subdominant", "dominant", etc.
+}
+
+export const CHORD_PROGRESSIONS: ChordProgressionPreset[] = [
+  {
+    id: "i-iv-v",
+    name: "I-IV-V Progression",
+    description: "The most fundamental chord progression in Western music",
+    key: "C",
+    chords: [
+      { root: "C", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+      { root: "F", chordType: CHORDS[0], romanNumeral: "IV", function: "subdominant" },
+      { root: "G", chordType: CHORDS[0], romanNumeral: "V", function: "dominant" },
+    ],
+    style: "classical",
+    difficulty: "beginner",
+  },
+  {
+    id: "ii-v-i",
+    name: "ii-V-I Progression",
+    description: "Essential jazz progression - the most common cadence",
+    key: "C",
+    chords: [
+      { root: "D", chordType: CHORDS[1], romanNumeral: "ii", function: "pre-dominant" },
+      { root: "G", chordType: CHORDS[5], romanNumeral: "V7", function: "dominant" },
+      { root: "C", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+    ],
+    style: "jazz",
+    difficulty: "intermediate",
+  },
+  {
+    id: "i-vi-iv-v",
+    name: "I-vi-IV-V Progression",
+    description: "Classic pop/rock progression - the '50s progression'",
+    key: "C",
+    chords: [
+      { root: "C", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+      { root: "A", chordType: CHORDS[1], romanNumeral: "vi", function: "tonic substitute" },
+      { root: "F", chordType: CHORDS[0], romanNumeral: "IV", function: "subdominant" },
+      { root: "G", chordType: CHORDS[0], romanNumeral: "V", function: "dominant" },
+    ],
+    style: "pop",
+    difficulty: "beginner",
+  },
+  {
+    id: "i-vi-ii-v",
+    name: "I-vi-ii-V Progression",
+    description: "Jazz standard turnaround progression",
+    key: "C",
+    chords: [
+      { root: "C", chordType: CHORDS[4], romanNumeral: "Imaj7", function: "tonic" },
+      { root: "A", chordType: CHORDS[6], romanNumeral: "vim7", function: "tonic substitute" },
+      { root: "D", chordType: CHORDS[6], romanNumeral: "iim7", function: "pre-dominant" },
+      { root: "G", chordType: CHORDS[5], romanNumeral: "V7", function: "dominant" },
+    ],
+    style: "jazz",
+    difficulty: "intermediate",
+  },
+  {
+    id: "blues-12-bar",
+    name: "12-Bar Blues",
+    description: "The foundation of blues music",
+    key: "C",
+    chords: [
+      { root: "C", chordType: CHORDS[5], romanNumeral: "I7", function: "tonic" },
+      { root: "C", chordType: CHORDS[5], romanNumeral: "I7", function: "tonic" },
+      { root: "C", chordType: CHORDS[5], romanNumeral: "I7", function: "tonic" },
+      { root: "C", chordType: CHORDS[5], romanNumeral: "I7", function: "tonic" },
+      { root: "F", chordType: CHORDS[5], romanNumeral: "IV7", function: "subdominant" },
+      { root: "F", chordType: CHORDS[5], romanNumeral: "IV7", function: "subdominant" },
+      { root: "C", chordType: CHORDS[5], romanNumeral: "I7", function: "tonic" },
+      { root: "C", chordType: CHORDS[5], romanNumeral: "I7", function: "tonic" },
+      { root: "G", chordType: CHORDS[5], romanNumeral: "V7", function: "dominant" },
+      { root: "F", chordType: CHORDS[5], romanNumeral: "IV7", function: "subdominant" },
+      { root: "C", chordType: CHORDS[5], romanNumeral: "I7", function: "tonic" },
+      { root: "G", chordType: CHORDS[5], romanNumeral: "V7", function: "dominant" },
+    ],
+    style: "blues",
+    difficulty: "beginner",
+  },
+  {
+    id: "circle-progressions",
+    name: "Circle of Fifths Progression",
+    description: "Descending fifths - strong harmonic motion",
+    key: "C",
+    chords: [
+      { root: "C", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+      { root: "F", chordType: CHORDS[0], romanNumeral: "IV", function: "subdominant" },
+      { root: "Bb", chordType: CHORDS[0], romanNumeral: "bVII", function: "subdominant" },
+      { root: "Eb", chordType: CHORDS[0], romanNumeral: "bIII", function: "tonic" },
+      { root: "Ab", chordType: CHORDS[0], romanNumeral: "bVI", function: "tonic" },
+      { root: "Db", chordType: CHORDS[0], romanNumeral: "bII", function: "dominant" },
+      { root: "G", chordType: CHORDS[5], romanNumeral: "V7", function: "dominant" },
+      { root: "C", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+    ],
+    style: "jazz",
+    difficulty: "advanced",
+  },
+  {
+    id: "pachelbel-canon",
+    name: "Pachelbel Canon Progression",
+    description: "Famous classical progression - I-V-vi-iii-IV-I-IV-V",
+    key: "C",
+    chords: [
+      { root: "C", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+      { root: "G", chordType: CHORDS[0], romanNumeral: "V", function: "dominant" },
+      { root: "A", chordType: CHORDS[1], romanNumeral: "vi", function: "tonic substitute" },
+      { root: "E", chordType: CHORDS[0], romanNumeral: "iii", function: "tonic" },
+      { root: "F", chordType: CHORDS[0], romanNumeral: "IV", function: "subdominant" },
+      { root: "C", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+      { root: "F", chordType: CHORDS[0], romanNumeral: "IV", function: "subdominant" },
+      { root: "G", chordType: CHORDS[0], romanNumeral: "V", function: "dominant" },
+    ],
+    style: "classical",
+    difficulty: "intermediate",
+  },
+  {
+    id: "folk-progressions",
+    name: "Folk Progression",
+    description: "Common in folk and country music - I-IV-I-V-I",
+    key: "G",
+    chords: [
+      { root: "G", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+      { root: "C", chordType: CHORDS[0], romanNumeral: "IV", function: "subdominant" },
+      { root: "G", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+      { root: "D", chordType: CHORDS[0], romanNumeral: "V", function: "dominant" },
+      { root: "G", chordType: CHORDS[0], romanNumeral: "I", function: "tonic" },
+    ],
+    style: "folk",
+    difficulty: "beginner",
+  },
+];
+
+export function transposeProgression(progression: ChordProgressionPreset, newKey: string): ChordProgressionPreset {
+  const originalKeyMidi = Note.midi(`${progression.key}3`);
+  const newKeyMidi = Note.midi(`${newKey}3`);
+  
+  if (originalKeyMidi === null || newKeyMidi === null) {
+    return progression;
+  }
+  
+  const semitoneShift = newKeyMidi - originalKeyMidi;
+  
+  const transposedChords = progression.chords.map(chord => {
+    const chordRootMidi = Note.midi(`${chord.root}3`);
+    if (chordRootMidi === null) return chord;
+    
+    const newRootMidi = chordRootMidi + semitoneShift;
+    const newRoot = Note.fromMidi(newRootMidi) || chord.root;
+    
+    return {
+      ...chord,
+      root: newRoot,
+    };
+  });
+  
+  return {
+    ...progression,
+    key: newKey,
+    chords: transposedChords,
+  };
+}
+
+export function getChordProgressionNotes(progression: ChordProgressionPreset, octave: number = 3): string[] {
+  const notes: string[] = [];
+  
+  progression.chords.forEach(chordInKey => {
+    const rootNote = `${chordInKey.root}${octave}`;
+    chordInKey.chordType.intervals.forEach(interval => {
+      const note = Note.transpose(rootNote, Interval.fromSemitones(interval));
+      notes.push(note);
+    });
+  });
+  
+  return notes;
+}
+
 export interface ChordPosition {
   stringId: string;
   note: string;
