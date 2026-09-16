@@ -3,7 +3,6 @@ import { Play, Save, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { analyzeRecordedNotes, formatIntervals, type RecordedNote } from "@/lib/note-recording";
 import type { SequencableAudioEngine } from "@/lib/maqam-playback";
-import type { PlayMode } from "@/lib/violin-audio";
 
 interface SavedRecording {
   id: string;
@@ -12,13 +11,13 @@ interface SavedRecording {
   savedAt: string;
 }
 
-interface RecordNotesDialogProps {
+interface RecordNotesDialogProps<Mode extends string> {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   notes: RecordedNote[];
   onLoad: (notes: RecordedNote[]) => void;
-  engine: SequencableAudioEngine<PlayMode>;
-  mode: PlayMode;
+  engine: SequencableAudioEngine<Mode>;
+  playbackMode: Mode;
 }
 
 const STORAGE_KEY = "violin-map:recorded-notes:v1";
@@ -34,7 +33,7 @@ function readRecordings(): SavedRecording[] {
   }
 }
 
-export function RecordNotesDialog({ open, onOpenChange, notes, onLoad, engine, mode }: RecordNotesDialogProps) {
+export function RecordNotesDialog<Mode extends string>({ open, onOpenChange, notes, onLoad, engine, playbackMode }: RecordNotesDialogProps<Mode>) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [name, setName] = useState("Untitled notes");
@@ -45,9 +44,9 @@ export function RecordNotesDialog({ open, onOpenChange, notes, onLoad, engine, m
   const stopPlayback = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
-    engine.noteOff(RECORDING_VOICE_ID, mode);
+    engine.noteOff(RECORDING_VOICE_ID, playbackMode);
     setPlaying(false);
-  }, [engine, mode]);
+  }, [engine, playbackMode]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -67,11 +66,11 @@ export function RecordNotesDialog({ open, onOpenChange, notes, onLoad, engine, m
     setPlaying(true);
     notes.forEach((note, index) => {
       timersRef.current.push(setTimeout(() => {
-        void engine.noteOn(RECORDING_VOICE_ID, note.frequency, "pluck");
+        void engine.noteOn(RECORDING_VOICE_ID, note.frequency, playbackMode);
       }, index * NOTE_DURATION_MS));
     });
     timersRef.current.push(setTimeout(() => {
-      engine.noteOff(RECORDING_VOICE_ID, mode);
+      engine.noteOff(RECORDING_VOICE_ID, playbackMode);
       setPlaying(false);
     }, notes.length * NOTE_DURATION_MS));
   };

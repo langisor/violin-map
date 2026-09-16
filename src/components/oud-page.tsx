@@ -14,6 +14,9 @@ import {
 } from "@/components/sound-source-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { RecordNotesDialog } from "@/components/record-notes-dialog";
+import type { RecordedNote } from "@/lib/note-recording";
+import { ListMusic } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -26,6 +29,9 @@ export function OudPage() {
   const [resolution, setResolution] = useState<Resolution>("quarter-tone");
   const [selectedMaqamId, setSelectedMaqamId] = useState<string>("bayati");
   const [soundSource, setSoundSource] = useState<SoundSource>("synth");
+  const [recordNotes, setRecordNotes] = useState(false);
+  const [recordedNotes, setRecordedNotes] = useState<RecordedNote[]>([]);
+  const [recordingDialogOpen, setRecordingDialogOpen] = useState(false);
 
   const tuning = useMemo(
     () => OUD_TUNINGS.find((t) => t.id === tuningId) ?? OUD_TUNINGS[0],
@@ -181,6 +187,23 @@ export function OudPage() {
             sampleFolderHint="public/samples/oud/"
             activeClassName="bg-amber-600 text-amber-950 hover:bg-amber-500 font-semibold"
           />
+          <Button
+            size="sm"
+            variant={recordNotes ? "default" : "outline"}
+            onClick={() => setRecordNotes((value) => !value)}
+          >
+            <ListMusic data-icon="inline-start" />
+            {recordNotes ? "Recording" : "Practice notes"}
+            {recordedNotes.length ? ` (${recordedNotes.length})` : ""}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!recordedNotes.length}
+            onClick={() => setRecordingDialogOpen(true)}
+          >
+            Analyze
+          </Button>
         </CardContent>
       </Card>
 
@@ -204,6 +227,21 @@ export function OudPage() {
         resolution={resolution}
         activeMaqam={activeMaqam}
         engine={activeEngine}
+        recordNotes={recordNotes}
+        recordedNotes={recordedNotes}
+        onRecordedNotesChange={setRecordedNotes}
+      />
+
+      <RecordNotesDialog
+        open={recordingDialogOpen}
+        onOpenChange={setRecordingDialogOpen}
+        notes={recordedNotes}
+        onLoad={(notes) => {
+          setRecordedNotes(notes);
+          setRecordNotes(true);
+        }}
+        engine={activeEngine}
+        playbackMode="risha"
       />
 
       {/* Course Tuner */}

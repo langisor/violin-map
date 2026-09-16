@@ -531,7 +531,7 @@ export default function App() {
             notes={recordedNotes}
             onLoad={(notes) => { setRecordedNotes(notes); setRecordNotes(true); }}
             engine={activeEngine}
-            mode={mode}
+            playbackMode="pluck"
           />
 
           <div className="flex flex-wrap items-center gap-2">

@@ -10,6 +10,7 @@ import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
 import { oudAudioEngine, type OudPlayMode } from "@/lib/oud-audio";
 import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { cn } from "@/lib/utils";
+import type { RecordedNote } from "@/lib/note-recording";
 
 interface OudFingerboardProps {
   mode: OudPlayMode;
@@ -18,6 +19,9 @@ interface OudFingerboardProps {
   activeMaqam: MaqamPreset | null;
   /** Defaults to the built-in synth engine; pass the sampler engine to play recorded samples instead. */
   engine?: SequencableAudioEngine<OudPlayMode>;
+  recordNotes?: boolean;
+  recordedNotes?: RecordedNote[];
+  onRecordedNotesChange?: (notes: RecordedNote[]) => void;
 }
 
 export function OudFingerboard({
@@ -26,16 +30,29 @@ export function OudFingerboard({
   resolution,
   activeMaqam,
   engine = oudAudioEngine,
+  recordNotes = false,
+  recordedNotes = [],
+  onRecordedNotesChange,
 }: OudFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
   const steps = stepsFor(resolution);
 
   const handlePress = useCallback(
-    (stringId: string, step: number, frequency: number) => {
+    (stringId: string, step: number, frequency: number, label: string) => {
+      if (recordNotes) {
+        const id = `${stringId}-${step}`;
+        const exists = recordedNotes.some((note) => note.id === id);
+        onRecordedNotesChange?.(
+          exists
+            ? recordedNotes.filter((note) => note.id !== id)
+            : [...recordedNotes, { id, label, stringId, step, frequency }],
+        );
+        return;
+      }
       setActiveCell(`${stringId}-${step}`);
       void engine.noteOn(stringId, frequency, mode);
     },
-    [mode, engine],
+    [mode, engine, onRecordedNotesChange, recordNotes, recordedNotes],
   );
 
   const handleRelease = useCallback(
@@ -112,12 +129,12 @@ export function OudFingerboard({
                       <button
                         key={cellKey}
                         aria-label={`${str.label} course, position ${step}, note ${noteName}`}
-                        onMouseDown={() => handlePress(str.id, step, frequency)}
+                        onMouseDown={() => handlePress(str.id, step, frequency, noteName)}
                         onMouseUp={() => handleRelease(str.id)}
                         onMouseLeave={() => isActive && handleRelease(str.id)}
                         onTouchStart={(e) => {
                           e.preventDefault();
-                          handlePress(str.id, step, frequency);
+                          handlePress(str.id, step, frequency, noteName);
                         }}
                         onTouchEnd={() => handleRelease(str.id)}
                         className={cn(
@@ -130,6 +147,9 @@ export function OudFingerboard({
                             "border-amber-500/80 bg-amber-950/70 font-semibold ring-1 ring-amber-500/50 shadow-sm shadow-amber-900/40",
                           isActive &&
                             "border-amber-400 bg-amber-600/30 scale-[0.98] shadow-inner",
+                          recordNotes &&
+                            recordedNotes.some((note) => note.id === cellKey) &&
+                            "border-emerald-300 bg-emerald-500/15 text-emerald-50 ring-2 ring-emerald-300",
                         )}
                         style={{ outlineColor: str.varnish }}
                       >
@@ -158,7 +178,7 @@ export function OudFingerboard({
           })}
       </div>
       <p className="mt-3 text-center text-xs text-violin-muted">
-        Tap or hold a cell to strike with the Risha (plectrum).
+        {recordNotes ? "Tap notes to add or remove them from the phrase." : "Tap or hold a cell to strike with the Risha (plectrum)."}
         {activeMaqam && (
           <span className="ml-1 text-amber-400 font-medium">
             Highlighted cells with golden dots belong to {activeMaqam.nameEn} (
