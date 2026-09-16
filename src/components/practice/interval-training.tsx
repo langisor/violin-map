@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -36,12 +42,12 @@ export function IntervalTraining() {
     setExercise(newExercise);
     setSelectedAnswer(null);
     setShowResult(false);
-    setPreviousIntervals(prev => [...prev.slice(-2), newExercise.interval]);
+    setPreviousIntervals((prev) => [...prev.slice(-2), newExercise.interval]);
   }, [mode, previousIntervals]);
 
   useEffect(() => {
     generateNewExercise();
-  // }, [generateNewExercise]);
+    // }, [generateNewExercise]);
   }, [mode]); // Regenerate exercise when mode changes
 
   const playInterval = useCallback(async () => {
@@ -49,34 +55,47 @@ export function IntervalTraining() {
       console.log("No exercise available to play.");
       return;
     }
-    
+
     setIsPlaying(true);
-    
+
     // Play root note
-    await violinAudioEngine.noteOn("str0", Note.freq(exercise.rootNote) || 440, "pluck");
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await violinAudioEngine.noteOn(
+      "str0",
+      Note.freq(exercise.rootNote) || 440,
+      "pluck",
+    );
+    await new Promise((resolve) => setTimeout(resolve, 500));
     violinAudioEngine.noteOff("str0", "pluck");
-    
+
     // Small pause
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     // Play target note
-    await violinAudioEngine.noteOn("str0", Note.freq(exercise.targetNote) || 440, "pluck");
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await violinAudioEngine.noteOn(
+      "str0",
+      Note.freq(exercise.targetNote) || 440,
+      "pluck",
+    );
+    await new Promise((resolve) => setTimeout(resolve, 500));
     violinAudioEngine.noteOff("str0", "pluck");
-    
+
     setIsPlaying(false);
   }, [exercise]);
 
-  const handleAnswer = useCallback((answer: string) => {
-    if (!exercise || showResult) return;
-    
-    setSelectedAnswer(answer);
-    const isCorrect = answer === exercise.correctAnswer;
-    setShowResult(true);
-    
-    setStats(prev => updateIntervalStats(prev, exercise.interval.id, isCorrect));
-  }, [exercise, showResult]);
+  const handleAnswer = useCallback(
+    (answer: string) => {
+      if (!exercise || showResult) return;
+
+      setSelectedAnswer(answer);
+      const isCorrect = answer === exercise.correctAnswer;
+      setShowResult(true);
+
+      setStats((prev) =>
+        updateIntervalStats(prev, exercise.interval.id, isCorrect),
+      );
+    },
+    [exercise, showResult],
+  );
 
   const handleNext = useCallback(() => {
     generateNewExercise();
@@ -93,9 +112,10 @@ export function IntervalTraining() {
     });
   }, []);
 
-  const accuracy = stats.totalAttempts > 0 
-    ? Math.round((stats.correctAnswers / stats.totalAttempts) * 100) 
-    : 0;
+  const accuracy =
+    stats.totalAttempts > 0
+      ? Math.round((stats.correctAnswers / stats.totalAttempts) * 100)
+      : 0;
 
   if (!exercise) return null;
 
@@ -142,15 +162,21 @@ export function IntervalTraining() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-violin-text">{accuracy}%</div>
+                <div className="text-2xl font-bold text-violin-text">
+                  {accuracy}%
+                </div>
                 <div className="text-xs text-violin-muted">Accuracy</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-violin-text">{stats.streak}</div>
+                <div className="text-2xl font-bold text-violin-text">
+                  {stats.streak}
+                </div>
                 <div className="text-xs text-violin-muted">Streak</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-violin-text">{stats.bestStreak}</div>
+                <div className="text-2xl font-bold text-violin-text">
+                  {stats.bestStreak}
+                </div>
                 <div className="text-xs text-violin-muted">Best Streak</div>
               </div>
             </div>
@@ -169,14 +195,18 @@ export function IntervalTraining() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-violin-text">
-                {mode === "identify" ? "Identify the Interval" : 
-                 mode === "practice" ? "Practice the Interval" : 
-                 "Challenge Mode"}
+                {mode === "identify"
+                  ? "Identify the Interval"
+                  : mode === "practice"
+                    ? "Practice the Interval"
+                    : "Challenge Mode"}
               </CardTitle>
               <CardDescription className="text-violin-muted">
-                {mode === "identify" ? "Listen to the interval and identify it by name" :
-                 mode === "practice" ? "Practice playing the displayed interval" :
-                 "Test your skills with mixed intervals"}
+                {mode === "identify"
+                  ? "Listen to the interval and identify it by name"
+                  : mode === "practice"
+                    ? "Practice playing the displayed interval"
+                    : "Test your skills with mixed intervals"}
               </CardDescription>
             </div>
             <Badge variant="outline" className="text-violin-text">
@@ -188,9 +218,11 @@ export function IntervalTraining() {
           {/* Interval Display */}
           <div className="rounded-lg border border-cyan-400/30 bg-[#0b1020] p-6 text-center">
             <div className="mb-4 text-sm text-violin-muted">
-              {mode === "identify" ? "Press Play to hear the interval" : "Play this interval on your instrument"}
+              {mode === "identify"
+                ? "Press Play to hear the interval"
+                : "Play this interval on your instrument"}
             </div>
-            
+
             {mode === "identify" ? (
               <div className="mb-4">
                 <Button
@@ -218,9 +250,13 @@ export function IntervalTraining() {
             )}
 
             {showResult && (
-              <div className={`mt-4 flex items-center justify-center gap-2 ${
-                selectedAnswer === exercise.correctAnswer ? "text-emerald-400" : "text-red-400"
-              }`}>
+              <div
+                className={`mt-4 flex items-center justify-center gap-2 ${
+                  selectedAnswer === exercise.correctAnswer
+                    ? "text-emerald-400"
+                    : "text-red-400"
+                }`}
+              >
                 {selectedAnswer === exercise.correctAnswer ? (
                   <>
                     <Check className="h-5 w-5" />
@@ -249,11 +285,11 @@ export function IntervalTraining() {
                     ? option === exercise.correctAnswer
                       ? "default"
                       : option === selectedAnswer
-                      ? "outline"
-                      : "outline"
+                        ? "outline"
+                        : "outline"
                     : selectedAnswer === option
-                    ? "default"
-                    : "outline"
+                      ? "default"
+                      : "outline"
                 }
                 onClick={() => handleAnswer(option)}
                 disabled={showResult}
@@ -292,7 +328,9 @@ export function IntervalTraining() {
                 key={interval.id}
                 className="flex items-center justify-between rounded border border-cyan-400/20 bg-[#0b1020] px-3 py-2"
               >
-                <span className="font-medium text-violin-text">{interval.name}</span>
+                <span className="font-medium text-violin-text">
+                  {interval.name}
+                </span>
                 <span className="text-cyan-300">{interval.symbol}</span>
               </div>
             ))}
