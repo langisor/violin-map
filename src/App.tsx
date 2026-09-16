@@ -506,6 +506,7 @@ export default function App() {
             engine={activeEngine}
             mode={mode}
             playbackOctave={4}
+            instrumentOpenNotes={strings.map((string) => string.openNote)}
           />}
 
           <ViolinFingerboard

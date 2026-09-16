@@ -7,6 +7,8 @@ import {
   WESTERN_KEYS,
   westernScale,
   getKeySignature,
+  scaleNotesForInstrument,
+  scaleStartNote,
   type WesternScaleKind,
   type WesternScalePreset,
 } from "@/lib/western-scale-theory";
@@ -21,6 +23,7 @@ interface WesternScalePanelProps<Mode extends string> {
   engine: SequencableAudioEngine<Mode>;
   mode: Mode;
   playbackOctave?: number;
+  instrumentOpenNotes?: string[];
 }
 
 export function WesternScalePanel<Mode extends string>({
@@ -31,6 +34,7 @@ export function WesternScalePanel<Mode extends string>({
   engine,
   mode,
   playbackOctave = 4,
+  instrumentOpenNotes = [],
 }: WesternScalePanelProps<Mode>) {
   const [kind, setKind] = useState<WesternScaleKind>("major");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -60,9 +64,12 @@ export function WesternScalePanel<Mode extends string>({
       lowerJins: { jinsId: "", rootOffset: 0 },
     } satisfies MaqamPreset;
     const tonicFrequency = Note.freq(`${selectedScale.tonic}${playbackOctave}`) ?? 440;
+    const startNote = scaleStartNote(selectedScale, instrumentOpenNotes);
+    const startOctave = startNote ? Note.get(startNote).oct ?? playbackOctave : playbackOctave;
     setIsPlaying(true);
-    stopRef.current = playMaqamSequence(sequence, engine, mode, playbackOctave, (index) => {
-      onPlayingFrequency?.(tonicFrequency * 2 ** (selectedScale.intervals[index] / 12));
+    const startFrequency = startNote ? Note.freq(startNote) ?? tonicFrequency : tonicFrequency;
+    stopRef.current = playMaqamSequence(sequence, engine, mode, startOctave, (index) => {
+      onPlayingFrequency?.(startFrequency * 2 ** (selectedScale.intervals[index] / 12));
     }, () => {
       setIsPlaying(false);
       onPlayingFrequency?.(null);
@@ -95,6 +102,9 @@ export function WesternScalePanel<Mode extends string>({
         {selectedScale && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky-900/40 bg-sky-950/20 p-3 text-xs text-sky-100">
           <div className="flex flex-col gap-1">
             <span><strong>{selectedScale.tonic} {selectedScale.displayName}</strong>: {selectedScale.description}</span>
+            {instrumentOpenNotes.length > 0 && <span className="text-[10px] text-sky-200/80">
+              Instrument start: {scaleStartNote(selectedScale, instrumentOpenNotes) ?? "No matching playable tonic"} · {scaleNotesForInstrument(selectedScale, instrumentOpenNotes).map((note) => Note.get(note).name).join(" ")}
+            </span>}
             <span className="text-[10px] text-sky-200/70">
               Key Signature: {(() => {
                 const keySig = getKeySignature(selectedScale.tonic, selectedScale.kind);

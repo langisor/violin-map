@@ -1,4 +1,4 @@
-import { Note } from "tonal";
+import { Interval, Note, Scale } from "tonal";
 
 export type WesternScaleKind = 
   | "major" 
@@ -21,83 +21,124 @@ export interface WesternScalePreset {
   intervals: number[];
   displayName: string;
   description: string;
+  tonalName: string;
+  notes: string[];
 }
 
 export const WESTERN_KEYS = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"] as const;
 
-const SCALE_INTERVALS: Record<WesternScaleKind, { intervals: number[]; displayName: string; description: string }> = {
+const SCALE_DEFINITIONS: Record<WesternScaleKind, { tonalType: string; displayName: string; description: string }> = {
   major: {
-    intervals: [0, 2, 4, 5, 7, 9, 11, 12],
+    tonalType: "major",
     displayName: "Major",
     description: "The standard major scale - bright and happy"
   },
   minor: {
-    intervals: [0, 2, 3, 5, 7, 8, 10, 12],
+    tonalType: "minor",
     displayName: "Natural Minor",
     description: "The natural minor scale - melancholic and dark"
   },
   "pentatonic-major": {
-    intervals: [0, 2, 4, 7, 9, 12],
+    tonalType: "major pentatonic",
     displayName: "Pentatonic Major",
     description: "Five-note major scale - versatile and universally pleasant"
   },
   "pentatonic-minor": {
-    intervals: [0, 3, 5, 7, 10, 12],
+    tonalType: "minor pentatonic",
     displayName: "Pentatonic Minor",
     description: "Five-note minor scale - bluesy and emotional"
   },
   blues: {
-    intervals: [0, 3, 5, 6, 7, 10, 12],
+    tonalType: "blues",
     displayName: "Blues",
     description: "Six-note blues scale with characteristic blue note"
   },
   dorian: {
-    intervals: [0, 2, 3, 5, 7, 9, 10, 12],
+    tonalType: "dorian",
     displayName: "Dorian",
     description: "Mode II - minor with a raised 6th, jazzy and hopeful"
   },
   phrygian: {
-    intervals: [0, 1, 3, 5, 7, 8, 10, 12],
+    tonalType: "phrygian",
     displayName: "Phrygian",
     description: "Mode III - minor with a lowered 2nd, exotic and Spanish"
   },
   lydian: {
-    intervals: [0, 2, 4, 6, 7, 9, 11, 12],
+    tonalType: "lydian",
     displayName: "Lydian",
     description: "Mode IV - major with a raised 4th, dreamy and spacious"
   },
   mixolydian: {
-    intervals: [0, 2, 4, 5, 7, 9, 10, 12],
+    tonalType: "mixolydian",
     displayName: "Mixolydian",
     description: "Mode V - major with a lowered 7th, rock and folk"
   },
   locrian: {
-    intervals: [0, 1, 3, 5, 6, 8, 10, 12],
+    tonalType: "locrian",
     displayName: "Locrian",
     description: "Mode VII - diminished character, unstable and tense"
   },
   "harmonic-minor": {
-    intervals: [0, 2, 3, 5, 7, 8, 11, 12],
+    tonalType: "harmonic minor",
     displayName: "Harmonic Minor",
     description: "Minor with raised 7th - dramatic and classical"
   },
   "melodic-minor": {
-    intervals: [0, 2, 3, 5, 7, 9, 11, 12],
+    tonalType: "melodic minor",
     displayName: "Melodic Minor",
     description: "Minor with raised 6th and 7th ascending - jazz and modern"
   },
 };
 
 export function westernScale(tonic: string, kind: WesternScaleKind): WesternScalePreset {
-  const scaleData = SCALE_INTERVALS[kind];
+  const definition = SCALE_DEFINITIONS[kind];
+  const tonalName = `${tonic} ${definition.tonalType}`;
+  const scale = Scale.get(tonalName);
+  const intervals = scale.intervals.map((interval) => Interval.semitones(interval) ?? 0);
+  const octave = intervals.at(0) === 0 && intervals.at(-1) !== 12 ? [12] : [];
   return {
     id: `${tonic.toLowerCase().replace("#", "sharp").replace("b", "flat")}-${kind}`,
     tonic,
     kind,
-    intervals: scaleData.intervals,
-    displayName: scaleData.displayName,
-    description: scaleData.description,
+    intervals: [...intervals, ...octave],
+    displayName: definition.displayName,
+    description: definition.description,
+    tonalName,
+    notes: scale.notes,
   };
+}
+
+/** Selects the lowest useful tonic for an instrument's actual open strings. */
+export function scaleStartNote(scale: WesternScalePreset, openNotes: string[]): string | null {
+  const tonic = Note.get(scale.tonic).pc;
+  const openMidi = openNotes
+    .map((note) => Note.midi(note))
+    .filter((midi): midi is number => midi !== null)
+    .sort((a, b) => a - b);
+  if (!tonic || !openMidi.length) return null;
+
+  const exactOpen = openNotes.find((note) => Note.get(note).pc === tonic);
+  if (exactOpen) return exactOpen;
+
+  const lowestMidi = openMidi[0];
+  for (let octave = 0; octave <= 8; octave += 1) {
+    const candidate = `${tonic}${octave}`;
+    const candidateMidi = Note.midi(candidate);
+    if (candidateMidi !== null && candidateMidi >= lowestMidi) return candidate;
+  }
+  return null;
+}
+
+export function scaleNotesForInstrument(
+  scale: WesternScalePreset,
+  openNotes: string[],
+): string[] {
+  const startNote = scaleStartNote(scale, openNotes);
+  if (!startNote) return [];
+  return scale.intervals.map((interval) => {
+    const tonalInterval = interval === 12 ? "8P" : Interval.fromSemitones(interval);
+    return Note.transpose(startNote, tonalInterval);
+  });
 }
 
 export function isNoteInWesternScale(
@@ -133,7 +174,7 @@ export function getScaleDegree(
 }
 
 export function getAllWesternScales(tonic: string): WesternScalePreset[] {
-  return Object.keys(SCALE_INTERVALS).map(kind => 
+  return Object.keys(SCALE_DEFINITIONS).map(kind => 
     westernScale(tonic, kind as WesternScaleKind)
   );
 }

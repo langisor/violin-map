@@ -44,7 +44,7 @@ export function ScalePractice() {
       selectedScale,
       pattern,
       scaleType,
-      3 // start octave
+      4 // start octave for the violin practice register
     );
     newExercise.tempo = tempo;
     setExercise(newExercise);

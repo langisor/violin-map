@@ -12,7 +12,7 @@ import { violinAudioEngine, type PlayMode } from "@/lib/violin-audio";
 import { isNoteInMaqam, type MaqamPreset } from "@/lib/maqam-theory";
 import type { SequencableAudioEngine } from "@/lib/maqam-playback";
 import { cn } from "@/lib/utils";
-import { isNoteInWesternScale, getScaleDegree, type WesternScalePreset } from "@/lib/western-scale-theory";
+import { isNoteInWesternScale, getScaleDegree, scaleNotesForInstrument, type WesternScalePreset } from "@/lib/western-scale-theory";
 import type { RecordedNote } from "@/lib/note-recording";
 
 /**
@@ -73,16 +73,19 @@ export function ViolinFingerboard({
     const source = activeScale ?? activeMaqam;
     if (!source) return null;
 
-    const noteNames = source.intervals.slice(0, -1).map((offset) => labelAtStep(`${source.tonic}4`, offset, notation));
+    const noteNames = activeScale
+      ? scaleNotesForInstrument(activeScale, strings.map((string) => string.openNote))
+        .map((note) => labelAtStep(note, 0, notation))
+      : source.intervals.slice(0, -1).map((offset) => labelAtStep(`${source.tonic}4`, offset, notation));
     const intervalValues = source.intervals.slice(1).map((offset, index) => Number((offset - source.intervals[index]).toFixed(2)));
     const title = activeScale
-      ? `${source.tonic} ${activeScale.kind === "major" ? "Major" : "Natural minor"}`
+      ? `${source.tonic} ${activeScale.displayName}`
       : activeMaqam
         ? activeMaqam.nameEn
         : "";
 
     return { title, noteNames, intervalValues };
-  }, [activeMaqam, activeScale, notation]);
+  }, [activeMaqam, activeScale, notation, strings]);
 
   const handlePress = useCallback(
     (stringId: string, step: number, frequency: number, label: string) => {
