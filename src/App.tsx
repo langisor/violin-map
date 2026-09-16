@@ -26,6 +26,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { RecordNotesDialog } from "@/components/record-notes-dialog";
 import type { RecordedNote } from "@/lib/note-recording";
+import { IntervalTraining } from "@/components/practice/interval-training";
+import { ScalePractice } from "@/components/practice/scale-practice";
+import { GuidedRoutines } from "@/components/practice/guided-routines";
+import { ChordPractice } from "@/components/practice/chord-practice";
+import { VibratoPractice } from "@/components/practice/vibrato-practice";
+import { HarmonicPractice } from "@/components/practice/harmonic-practice";
 import {
   Card,
   CardContent,
@@ -71,8 +77,9 @@ import { BookOpen, ListMusic, Settings2 } from "lucide-react";
 import { Metronome } from "@/components/metronome/metronome";
 
 type Instrument = "violin" | "oud";
-type View = "play" | "pitch" | "metronome";
+type View = "play" | "pitch" | "metronome" | "practice";
 type ScaleSystem = "eastern" | "western";
+type PracticeView = "intervals" | "scales" | "routines" | "chords" | "vibrato" | "harmonics";
 
 export default function App() {
   const [instrument, setInstrument] = useState<Instrument>("violin");
@@ -93,6 +100,7 @@ export default function App() {
   const [recordNotes, setRecordNotes] = useState(false);
   const [recordedNotes, setRecordedNotes] = useState<RecordedNote[]>([]);
   const [recordingDialogOpen, setRecordingDialogOpen] = useState(false);
+  const [practiceView, setPracticeView] = useState<PracticeView>("intervals");
 
   const tuning = useMemo(
     () => TUNINGS.find((t) => t.id === tuningId) ?? TUNINGS[0],
@@ -188,12 +196,13 @@ export default function App() {
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold text-violin-text">Browse Tools</h2>
         <Tabs value={view} onValueChange={(v) => setView(v as View)}>
-          <TabsList className="grid w-full grid-cols-3 sm:inline-flex sm:w-auto">
+          <TabsList className="grid w-full grid-cols-4 sm:inline-flex sm:w-auto">
             <TabsTrigger value="play">
               {instrument === "violin" ? "Fingerboard" : "Fingerboard"}
             </TabsTrigger>
             <TabsTrigger value="pitch">Pitch Detection</TabsTrigger>
             <TabsTrigger value="metronome">Metronome</TabsTrigger>
+            <TabsTrigger value="practice">Practice</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -202,6 +211,36 @@ export default function App() {
         <Metronome />
       ) : view === "pitch" ? (
         <PitchTuner />
+      ) : view === "practice" ? (
+        <>
+          <Card className="border-violin-border bg-violin-panel">
+            <CardHeader>
+              <CardTitle className="text-violin-text">Practice Center</CardTitle>
+              <CardDescription className="text-violin-muted">
+                Structured exercises and training tools to improve your playing
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={practiceView} onValueChange={(v) => setPracticeView(v as PracticeView)}>
+                <TabsList className="grid w-full grid-cols-3 sm:inline-flex sm:w-auto">
+                  <TabsTrigger value="intervals">Intervals</TabsTrigger>
+                  <TabsTrigger value="scales">Scales</TabsTrigger>
+                  <TabsTrigger value="routines">Routines</TabsTrigger>
+                  <TabsTrigger value="chords">Chords</TabsTrigger>
+                  <TabsTrigger value="vibrato">Vibrato</TabsTrigger>
+                  <TabsTrigger value="harmonics">Harmonics</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {practiceView === "intervals" && <IntervalTraining />}
+          {practiceView === "scales" && <ScalePractice />}
+          {practiceView === "routines" && <GuidedRoutines />}
+          {practiceView === "chords" && <ChordPractice />}
+          {practiceView === "vibrato" && <VibratoPractice />}
+          {practiceView === "harmonics" && <HarmonicPractice />}
+        </>
       ) : instrument === "oud" ? (
         <OudPage />
       ) : (

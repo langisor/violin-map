@@ -1,3 +1,5 @@
+import { Note } from "tonal";
+
 export type WesternScaleKind = "major" | "minor";
 
 export interface WesternScalePreset {
@@ -34,4 +36,3 @@ export function isNoteInWesternScale(
   const pitchClassOffset = ((openMidi + step - tonicMidi) % 12 + 12) % 12;
   return scale.intervals.some((interval) => Math.abs(pitchClassOffset - (interval % 12)) < 0.1);
 }
-import { Note } from "tonal";
