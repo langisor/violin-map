@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Play, Check, RotateCcw, Music, HelpCircle } from "lucide-react";
+import { Play, Check, RotateCcw, Music, HelpCircle, X } from "lucide-react";
 import {
   generateChordOnFingerboard,
   getChordTones,
@@ -45,7 +45,7 @@ export function ChordPractice() {
     setExercise(newExercise);
     setSelectedAnswer(null);
     setShowResult(false);
-    
+
     // Generate fingerboard display
     const fingerboardChord = generateChordOnFingerboard(
       newExercise.chord,
@@ -61,79 +61,79 @@ export function ChordPractice() {
 
   const playChord = useCallback(async () => {
     if (!exercise || isPlaying) return;
-    
+
     setIsPlaying(true);
-    
+
     // Play chord tones simultaneously (arpeggiated for clarity)
     const chordTones = getChordTones(exercise.chord, exercise.root);
-    
+
     for (const note of chordTones) {
       const frequency = Note.freq(note) || 440;
       await violinAudioEngine.noteOn("str0", frequency, "pluck");
       await new Promise(resolve => setTimeout(resolve, 150));
     }
-    
+
     // Let ring briefly
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     // Stop all notes
     chordTones.forEach(() => {
       violinAudioEngine.noteOff("str0", "pluck");
     });
-    
+
     setIsPlaying(false);
   }, [exercise, isPlaying]);
 
   const playProgression = useCallback(async () => {
     if (!selectedProgression || isPlaying) return;
-    
+
     setIsPlaying(true);
     const progression = transposeProgression(selectedProgression, progressionKey);
-    
+
     for (let i = 0; i < progression.chords.length; i++) {
       setCurrentChordIndex(i);
       const chordInKey = progression.chords[i];
       const chordTones = getChordTones(chordInKey.chordType, chordInKey.root);
-      
+
       // Play chord tones
       for (const note of chordTones) {
         const frequency = Note.freq(note) || 440;
         await violinAudioEngine.noteOn("str0", frequency, "pluck");
       }
-      
+
       // Let chord ring
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Stop all notes
       chordTones.forEach(() => {
         violinAudioEngine.noteOff("str0", "pluck");
       });
-      
+
       // Brief pause between chords
       await new Promise(resolve => setTimeout(resolve, 200));
     }
-    
+
     setCurrentChordIndex(0);
     setIsPlaying(false);
   }, [selectedProgression, isPlaying, progressionKey]);
 
   const handleAnswer = useCallback((answer: string) => {
     if (!exercise || showResult) return;
-    
+
     setSelectedAnswer(answer);
     const isCorrect = answer === exercise.correctAnswer;
     setShowResult(true);
-    
+
     setStats(prev => {
       const newStats = { ...prev };
       newStats.totalAttempts++;
       newStats.chordsAttempted[exercise.chord.id] = (newStats.chordsAttempted[exercise.chord.id] || 0) + 1;
-      
+
       if (isCorrect) {
         newStats.correctAnswers++;
         newStats.chordsCorrect[exercise.chord.id] = (newStats.chordsCorrect[exercise.chord.id] || 0) + 1;
       }
-      
+
       return newStats;
     });
   }, [exercise, showResult]);
@@ -151,8 +151,8 @@ export function ChordPractice() {
     });
   }, []);
 
-  const accuracy = stats.totalAttempts > 0 
-    ? Math.round((stats.correctAnswers / stats.totalAttempts) * 100) 
+  const accuracy = stats.totalAttempts > 0
+    ? Math.round((stats.correctAnswers / stats.totalAttempts) * 100)
     : 0;
 
   if (!exercise) return null;
@@ -234,14 +234,14 @@ export function ChordPractice() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-violin-text">
-                {mode === "identify" ? "Identify the Chord" : 
-                 mode === "practice" ? "Practice the Chord" : 
-                 "Construct the Chord"}
+                {mode === "identify" ? "Identify the Chord" :
+                  mode === "practice" ? "Practice the Chord" :
+                    "Construct the Chord"}
               </CardTitle>
               <CardDescription className="text-violin-muted">
                 {mode === "identify" ? "Listen to the chord and identify it by name" :
-                 mode === "practice" ? "Practice playing the displayed chord" :
-                 "Construct the chord on the fingerboard"}
+                  mode === "practice" ? "Practice playing the displayed chord" :
+                    "Construct the chord on the fingerboard"}
               </CardDescription>
             </div>
             <Badge variant="outline" className="text-violin-text">
@@ -269,7 +269,7 @@ export function ChordPractice() {
                 </Button>
               )}
             </div>
-            
+
             {mode !== "identify" && (
               <div className="space-y-3">
                 <div className="text-center">
@@ -280,7 +280,7 @@ export function ChordPractice() {
                     {exercise.chord.name}
                   </div>
                 </div>
-                
+
                 <div className="rounded border border-cyan-400/20 bg-[#05070b] p-4">
                   <div className="mb-2 text-sm font-medium text-violin-text">Chord Tones</div>
                   <div className="flex flex-wrap gap-2">
@@ -312,9 +312,8 @@ export function ChordPractice() {
             )}
 
             {showResult && (
-              <div className={`mt-4 flex items-center justify-center gap-2 ${
-                selectedAnswer === exercise.correctAnswer ? "text-emerald-400" : "text-red-400"
-              }`}>
+              <div className={`mt-4 flex items-center justify-center gap-2 ${selectedAnswer === exercise.correctAnswer ? "text-emerald-400" : "text-red-400"
+                }`}>
                 {selectedAnswer === exercise.correctAnswer ? (
                   <>
                     <Check className="h-5 w-5" />
@@ -343,11 +342,11 @@ export function ChordPractice() {
                     ? option === exercise.correctAnswer
                       ? "default"
                       : option === selectedAnswer
-                      ? "outline"
-                      : "outline"
+                        ? "outline"
+                        : "outline"
                     : selectedAnswer === option
-                    ? "default"
-                    : "outline"
+                      ? "default"
+                      : "outline"
                 }
                 onClick={() => handleAnswer(option)}
                 disabled={showResult}
@@ -399,11 +398,10 @@ export function ChordPractice() {
               {CHORD_PROGRESSIONS.map((progression) => (
                 <div
                   key={progression.id}
-                  className={`rounded-lg border p-4 cursor-pointer transition-colors ${
-                    selectedProgression?.id === progression.id
+                  className={`rounded-lg border p-4 cursor-pointer transition-colors ${selectedProgression?.id === progression.id
                       ? "border-amber-400/50 bg-amber-500/10"
                       : "border-cyan-400/30 bg-[#0b1020] hover:border-cyan-400/50"
-                  }`}
+                    }`}
                   onClick={() => setSelectedProgression(progression)}
                 >
                   <div className="flex items-center justify-between">
@@ -420,18 +418,17 @@ export function ChordPractice() {
                       </Badge>
                     </div>
                   </div>
-                  
+
                   {selectedProgression?.id === progression.id && (
                     <div className="mt-3 space-y-2">
                       <div className="flex flex-wrap gap-1">
                         {transposeProgression(progression, progressionKey).chords.map((chord, index) => (
                           <div
                             key={index}
-                            className={`px-2 py-1 rounded text-xs ${
-                              currentChordIndex === index && isPlaying
+                            className={`px-2 py-1 rounded text-xs ${currentChordIndex === index && isPlaying
                                 ? "bg-amber-400 text-slate-950 font-semibold"
                                 : "bg-cyan-400/20 text-cyan-300"
-                            }`}
+                              }`}
                           >
                             {chord.root}{chord.chordType.symbol}
                           </div>
