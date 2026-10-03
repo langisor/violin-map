@@ -38,6 +38,78 @@ const FINGER_TAPES = [
   { offset: 7, color: "#342ed6", label: "4" },
 ] as const;
 
+export type MicrotonalAccidental =
+  | "𝄫" // double flat (-4 quarter tones / -200 cents)
+  | "♭" // flat (-2 quarter tones / -100 cents)
+  | "𝄳" // half-flat / quarter-tone flat (-1 quarter tone / -50 cents)
+  | "♮" // natural (0)
+  | "𝄵" // half-sharp / quarter-tone sharp (+1 quarter tone / +50 cents)
+  | "♯" // sharp (+2 quarter tones / +100 cents)
+  | "𝄪"; // double sharp (+4 quarter tones / +200 cents)
+
+/** Accidental glyphs keyed by their offset in quarter tones (1 quarter tone = 50 cents). */
+export const MICROTONAL_ACCIDENTALS: Record<number, MicrotonalAccidental> = {
+  [-4]: "𝄫",
+  [-2]: "♭",
+  [-1]: "𝄳",
+  0: "♮",
+  1: "𝄵",
+  2: "♯",
+  4: "𝄪",
+};
+
+/** Font stack that carries the musical-symbol glyphs. */
+const GLYPH_FONT =
+  '"Noto Music", "Bravura Text", "Segoe UI Symbol", "Apple Symbols", sans-serif';
+
+const ASCII_ACCIDENTAL_OFFSET: Record<string, number> = {
+  bb: -4,
+  b: -2,
+  "": 0,
+  "#": 2,
+  "##": 4,
+  x: 4,
+  "♭": -2,
+  "♯": 2,
+};
+const NEXT_LETTER: Record<string, string> = {
+  C: "D",
+  D: "E",
+  E: "F",
+  F: "G",
+  G: "A",
+  A: "B",
+  B: "C",
+};
+
+/**
+ * Renames a note with the microtonal accidentals above.
+ * `baseLabel` is the label of the whole semitone at or below the note (e.g. "C#4", "Bb");
+ * `quarterRaised` adds a quarter tone on top of it. Natural notes stay unmarked.
+ */
+export function formatMicrotonalLabel(
+  baseLabel: string,
+  quarterRaised: boolean,
+): string {
+  const match = /^([A-G])(bb|##|b|#|x|♭|♯)?(-?\d*)$/.exec(baseLabel);
+  if (!match) {
+    // Unrecognised notation (e.g. solfège): swap the sharp sign and mark the quarter tone.
+    return `${baseLabel.replace(/#/g, "♯")}${quarterRaised ? MICROTONAL_ACCIDENTALS[1] : ""}`;
+  }
+  const [, letter, accidental = "", octave] = match;
+  const offset = ASCII_ACCIDENTAL_OFFSET[accidental] ?? 0;
+  const glyph = (quarterTones: number) =>
+    quarterTones === 0 ? "" : MICROTONAL_ACCIDENTALS[quarterTones];
+
+  if (!quarterRaised) return `${letter}${glyph(offset)}${octave}`;
+
+  const total = offset + 1;
+  if (total === -1 || total === 1) return `${letter}${glyph(total)}${octave}`; // Bb+¼ → B𝄳, C+¼ → C𝄵
+  if (total === 3)
+    return `${NEXT_LETTER[letter]}${MICROTONAL_ACCIDENTALS[-1]}${octave}`; // C#+¼ → D𝄳
+  return `${letter}${glyph(offset)}${octave}${MICROTONAL_ACCIDENTALS[1]}`; // rare double-accidental cases
+}
+
 /* ------------------------------------------------------------------ */
 /* Real-world violin dimensions (millimetres)                          */
 /* ------------------------------------------------------------------ */
@@ -167,6 +239,7 @@ export function ViolinFingerboard({
 }: ViolinFingerboardProps) {
   const [activeCell, setActiveCell] = useState<string | null>(null);
   const [leftHanded, setLeftHanded] = useState(false);
+  const [accidentalNaming, setAccidentalNaming] = useState(false);
   const uid = useId().replace(/:/g, "");
   const ids = {
     board: `${uid}-board`,
@@ -190,6 +263,19 @@ export function ViolinFingerboard({
   );
   const stringCount = displayStrings.length;
 
+  /** Note name at a step: the default naming, or the global microtonal accidentals when enabled. */
+  const nameAt = useCallback(
+    (openNote: Parameters<typeof labelAtStep>[0], step: number) => {
+      if (!accidentalNaming) return labelAtStep(openNote, step, notation);
+      const whole = Math.floor(step);
+      return formatMicrotonalLabel(
+        labelAtStep(openNote, whole, notation),
+        step - whole >= 0.25,
+      );
+    },
+    [accidentalNaming, notation],
+  );
+
   const scaleSummary = useMemo(() => {
     const source = activeScale ?? activeMaqam;
     if (!source) return null;
@@ -198,10 +284,10 @@ export function ViolinFingerboard({
       ? scaleNotesForInstrument(
           activeScale,
           strings.map((string) => string.openNote),
-        ).map((note) => labelAtStep(note, 0, notation))
+        ).map((note) => nameAt(note, 0))
       : source.intervals
           .slice(0, -1)
-          .map((offset) => labelAtStep(`${source.tonic}4`, offset, notation));
+          .map((offset) => nameAt(`${source.tonic}4`, offset));
     const intervalValues = source.intervals
       .slice(1)
       .map((offset, index) =>
@@ -214,7 +300,7 @@ export function ViolinFingerboard({
         : "";
 
     return { title, noteNames, intervalValues };
-  }, [activeMaqam, activeScale, notation, strings]);
+  }, [activeMaqam, activeScale, nameAt, strings]);
 
   /* -------------------------------------------------------------- */
   /* Geometry                                                       */
@@ -338,7 +424,10 @@ export function ViolinFingerboard({
     <div className="w-full overflow-hidden rounded-[30px] border border-cyan-400/70 bg-[#05070b] p-3 shadow-[inset_0_0_0_1px_rgba(13,148,136,0.25),0_24px_60px_-28px_rgba(34,211,238,0.65)] sm:p-4">
       <div className="mb-3 flex items-start justify-between gap-3">
         {scaleSummary ? (
-          <div className="min-w-0 flex-1 rounded-full border border-cyan-400/40 bg-cyan-500/5 px-3 py-2 text-left">
+          <div
+            className="min-w-0 flex-1 rounded-full border border-cyan-400/40 bg-cyan-500/5 px-3 py-2 text-left"
+            style={accidentalNaming ? { fontFamily: GLYPH_FONT } : undefined}
+          >
             <div className="text-[9px] font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
               {scaleSummary.title}
             </div>
@@ -355,19 +444,34 @@ export function ViolinFingerboard({
         ) : (
           <div className="flex-1" />
         )}
-        <button
-          type="button"
-          aria-pressed={leftHanded}
-          onClick={() => setLeftHanded((value) => !value)}
-          className={cn(
-            "shrink-0 rounded-full border px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors",
-            leftHanded
-              ? "border-emerald-400/80 bg-emerald-400/15 text-emerald-200 shadow-[0_0_0_1px_rgba(52,211,153,0.2)]"
-              : "border-cyan-400/60 bg-cyan-500/10 text-cyan-100",
-          )}
-        >
-          Left Hand
-        </button>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <button
+            type="button"
+            aria-pressed={accidentalNaming}
+            onClick={() => setAccidentalNaming((value) => !value)}
+            className={cn(
+              "shrink-0 rounded-full border px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors",
+              accidentalNaming
+                ? "border-amber-400/80 bg-amber-400/15 text-amber-200 shadow-[0_0_0_1px_rgba(251,191,36,0.2)]"
+                : "border-cyan-400/60 bg-cyan-500/10 text-cyan-100",
+            )}
+          >
+            Global Accid. Naming
+          </button>
+          <button
+            type="button"
+            aria-pressed={leftHanded}
+            onClick={() => setLeftHanded((value) => !value)}
+            className={cn(
+              "shrink-0 rounded-full border px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors",
+              leftHanded
+                ? "border-emerald-400/80 bg-emerald-400/15 text-emerald-200 shadow-[0_0_0_1px_rgba(52,211,153,0.2)]"
+                : "border-cyan-400/60 bg-cyan-500/10 text-cyan-100",
+            )}
+          >
+            Left Hand
+          </button>
+        </div>
       </div>
 
       {!isVertical && (
@@ -382,7 +486,10 @@ export function ViolinFingerboard({
           role="group"
           aria-label="Violin fingerboard"
           className="mx-auto block h-auto w-full select-none"
-          style={isVertical ? { maxWidth: width } : { minWidth: width }}
+          style={{
+            ...(isVertical ? { maxWidth: width } : { minWidth: width }),
+            ...(accidentalNaming ? { fontFamily: GLYPH_FONT } : null),
+          }}
         >
           <defs>
             {/* Ebony: darker at the rounded edges, a soft sheen down the middle */}
@@ -614,7 +721,7 @@ export function ViolinFingerboard({
           {/* Playable notes */}
           {displayStrings.map((str, row) =>
             geo.cells.map(({ step, mm, lo, hi }) => {
-              const noteName = labelAtStep(str.openNote, step, notation);
+              const noteName = nameAt(str.openNote, step);
               const frequency = frequencyAtStep(str.openNote, step);
               const cellKey = `${str.id}-${step}`;
               const isActive = activeCell === cellKey;
@@ -818,7 +925,9 @@ export function ViolinFingerboard({
           ? "Tap notes to add or remove them from the recording."
           : "Hold a note to sustain in bow mode, or tap to pluck in pizzicato mode."}
         {resolution === "quarter-tone"
-          ? ' Dashed circles are quarter tones — a trailing "+" means raised a quarter tone.'
+          ? accidentalNaming
+            ? " Dashed circles are quarter tones — 𝄳 marks a half-flat and 𝄵 a half-sharp."
+            : ' Dashed circles are quarter tones — a trailing "+" means raised a quarter tone.'
           : " The small number is the semitone position above the open string."}
         {activeMaqam && (
           <span className="ml-1 text-amber-400 font-medium">
