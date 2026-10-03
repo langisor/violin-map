@@ -431,10 +431,10 @@ export function ViolinFingerboard({
             <div className="text-[9px] font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
               {scaleSummary.title}
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-slate-100">
+            <div className="mt-1 flex flex-wrap items-center gap-1 text-[14px] text-slate-100">
               <span>{scaleSummary.noteNames.join(" ")}</span>
             </div>
-            <div className="mt-1 text-[10px] text-slate-300">
+            <div className="mt-1 text-[11px] text-slate-300">
               Intervals:{" "}
               {scaleSummary.intervalValues
                 .map((value) => `${value}`)
@@ -450,7 +450,7 @@ export function ViolinFingerboard({
             aria-pressed={accidentalNaming}
             onClick={() => setAccidentalNaming((value) => !value)}
             className={cn(
-              "shrink-0 rounded-full border px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors",
+              "shrink-0 rounded-full border px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors",
               accidentalNaming
                 ? "border-amber-400/80 bg-amber-400/15 text-amber-200 shadow-[0_0_0_1px_rgba(251,191,36,0.2)]"
                 : "border-cyan-400/60 bg-cyan-500/10 text-cyan-100",
@@ -463,7 +463,7 @@ export function ViolinFingerboard({
             aria-pressed={leftHanded}
             onClick={() => setLeftHanded((value) => !value)}
             className={cn(
-              "shrink-0 rounded-full border px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors",
+              "shrink-0 rounded-full border px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors",
               leftHanded
                 ? "border-emerald-400/80 bg-emerald-400/15 text-emerald-200 shadow-[0_0_0_1px_rgba(52,211,153,0.2)]"
                 : "border-cyan-400/60 bg-cyan-500/10 text-cyan-100",
