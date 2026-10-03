@@ -11,6 +11,11 @@ export interface JinsPreset {
   nameAr: string;
   description: string;
   intervals: number[]; // steps in semitones (or quarter tones) from the jins root
+  defaultTonic?: string; // optional default tonic for this jins, e.g. "D4" for Jins Bayati
+  verified?: boolean; // true if this jins has been verified by a musicologist
+  role?: "lower" | "upper"; // optional role of this jins in a maqam (lower or upper)
+  defaultDirection?: "ascending" | "descending"; // optional default direction for this jins
+
 }
 
 export const AJNAS: JinsPreset[] = [
@@ -21,6 +26,11 @@ export const AJNAS: JinsPreset[] = [
     description:
       "Root, whole tone, three-quarter tone, whole tone. The building block of Maqam Rast — neither major nor minor to Western ears.",
     intervals: [0, 2, 3.5, 5],
+
+    defaultTonic: "C4",
+    verified: false,
+    role: "lower",
+    defaultDirection: "ascending",
   },
   {
     id: "bayati",
@@ -29,6 +39,10 @@ export const AJNAS: JinsPreset[] = [
     description:
       "Root, three-quarter tone, three-quarter tone, whole tone. The most common jins in Arabic music, opening on a half-flat 2nd.",
     intervals: [0, 1.5, 3, 5],
+    defaultTonic: "D4",
+    verified: false,
+    role: "lower",
+    defaultDirection: "ascending",
   },
   {
     id: "hijaz",
@@ -37,6 +51,10 @@ export const AJNAS: JinsPreset[] = [
     description:
       "Root, half tone, augmented 2nd, half tone. Gives maqamat their distinctive Middle-Eastern augmented-second color.",
     intervals: [0, 1, 4, 5],
+    defaultTonic: "D4",
+    verified: false,
+    role: "lower",
+    defaultDirection: "ascending",
   },
   {
     id: "kurd",
@@ -45,6 +63,10 @@ export const AJNAS: JinsPreset[] = [
     description:
       "Root, half tone, whole tone, whole tone. Equivalent to a Phrygian tetrachord.",
     intervals: [0, 1, 3, 5],
+    defaultTonic: "D4",
+    verified: false,
+    role: "lower",
+    defaultDirection: "ascending",
   },
   {
     id: "nahawand",
@@ -53,6 +75,11 @@ export const AJNAS: JinsPreset[] = [
     description:
       "Root, whole tone, half tone, whole tone. A minor-sounding tetrachord, the basis of Maqam Nahawand.",
     intervals: [0, 2, 3, 5],
+    defaultTonic: "C4",
+    verified: false,
+    role: "lower",
+    defaultDirection: "ascending",
+
   },
   {
     id: "nikriz",
